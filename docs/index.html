@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D T-Shirt Customizer</title>
+    <link rel="icon" href="data:;">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+body, html {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #f5f5f5;
+    color: #333;
+    overflow: hidden;
+}
+#main-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+#canvas-flex-container, #model-container { /* Renamed from #canvas-container */
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+    height: 100%;
+}
+#canvas-wrapper { /* New wrapper for background */
+    width: 580px;
+    height: 580px;
+    position: relative;
+    background-image: url('plantilla.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+#texture-canvas {
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+#model-container {
+    background-color: #e0e0e0;
+    position: relative;
+}
+#model-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+#model-error {
+    display: none;
+    position: absolute;
+    color: #ff0000;
+    font-size: 1.2em;
+    text-align: center;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+}
+.tool-panel {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    width: 280px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease-in-out;
+}
+.tool-panel.collapsed .tool-content {
+    display: none;
+}
+.tool-panel.collapsed {
+    height: auto;
+}
+.tool-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: grab;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #eee;
+    margin-bottom: 20px;
+}
+.tool-header h3 {
+    margin: 0;
+    font-size: 20px;
+    color: #555;
+    display: flex;
+    align-items: center;
+}
+.tool-header i {
+    margin-right: 10px;
+}
+#toggle-panel {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #888;
+}
+.tool-section {
+    margin-bottom: 20px;
+}
+.tool-section h4 {
+    margin: 0 0 15px 0;
+    font-size: 16px;
+    color: #666;
+    display: flex;
+    align-items: center;
+}
+.tool-section i {
+    margin-right: 8px;
+}
+.tool-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+.tool-option label {
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+}
+.tool-option i {
+    margin-right: 8px;
+}
+.icon-button, #generate-template {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    color: #555;
+    transition: all 0.2s;
+}
+.icon-button:hover, #generate-template:hover {
+    background-color: #f0f0f0;
+    border-color: #ccc;
+}
+.file-input {
+    width: 120px;
+}
+select, input[type="range"], input[type="color"] {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 5px;
+}
+input[type="range"] {
+    width: 120px;
+}
+input[type="color"] {
+    height: 35px;
+}
+.tool-footer {
+    margin-top: auto;
+}
+#generate-template {
+    width: 100%;
+    background-color: #ff8c00;
+    color: white;
+    border: none;
+    padding: 12px;
+    font-size: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#generate-template i {
+    margin-right: 8px;
+}
+.design-actions {
+    display: flex;
+    justify-content: space-around;
+    gap: 10px;
+}
+.design-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+    color: #555;
+    background-color: #fafafa;
+    flex-grow: 1;
+}
+.design-btn:hover {
+    background-color: #f0f0f0;
+    border-color: #ccc;
+}
+.design-btn i {
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+    </style>
+</head>
+<body>
+    <div id="tool-panel" class="tool-panel">
+        <div class="tool-header">
+            <h3><i class="fas fa-tools"></i> Tool Panel</h3>
+            <button id="toggle-panel"><i class="fas fa-minus"></i></button>
+        </div>
+        <div class="tool-content">
+            <div class="tool-section">
+                <h4><i class="fas fa-palette"></i> Design</h4>
+                <div class="design-actions">
+                    <button id="add-text" class="design-btn">
+                        <i class="fas fa-font"></i>
+                        <span>Add Text</span>
+                    </button>
+                    <label for="add-image" class="design-btn">
+                        <i class="fas fa-image"></i>
+                        <span>Upload</span>
+                    </label>
+                    <input type="file" id="add-image" accept="image/*" style="display: none;">
+                </div>
+            </div>
+            <div class="tool-section">
+                <h4><i class="fas fa-cog"></i> Options</h4>
+                <div class="tool-option">
+                    <label for="font-family">Font</label>
+                    <select id="font-family">
+                        <option value="Arial">Arial</option>
+                        <option value="Helvetica" selected>Helvetica</option>
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Courier New">Courier New</option>
+                    </select>
+                </div>
+                <div class="tool-option">
+                    <label for="font-size">Size</label>
+                    <input type="range" id="font-size" min="10" max="100" value="40">
+                </div>
+                <div class="tool-option">
+                    <label for="fill-color">Fill</label>
+                    <input type="color" id="fill-color" value="#000000">
+                </div>
+            </div>
+            <div class="tool-footer">
+                <button id="generate-template"><i class="fas fa-download"></i> Generate Template</button>
+            </div>
+        </div>
+    </div>
+    <div id="main-container">
+        <div id="canvas-flex-container"> <!-- Renamed from #canvas-container -->
+            <div id="canvas-wrapper"> <!-- New wrapper -->
+                <canvas id="texture-canvas" width="580" height="580"></canvas>
+            </div>
+        </div>
+        <div id="model-container">
+            <canvas id="model-canvas"></canvas>
+            <div id="model-error">Could not load 3D model.</div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.5.0/fabric.min.js"></script>
+    <script>
+        const modelCanvas = document.getElementById('model-canvas');
+        const textureCanvas = document.getElementById('texture-canvas');
+        const modelError = document.getElementById('model-error');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, modelCanvas.clientWidth / modelCanvas.clientHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: modelCanvas, antialias: true, alpha: true });
+        renderer.setSize(modelCanvas.clientWidth, modelCanvas.clientHeight);
+        renderer.setClearColor(0xf0f0f0, 0);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        directionalLight.position.set(1, 1, 5);
+        scene.add(directionalLight);
+        const fabricCanvas = new fabric.Canvas('texture-canvas');
+        let model;
+        let originalTexture;
+        const textureLoader = new THREE.TextureLoader();
+        const gltfLoader = new THREE.GLTFLoader();
+
+        function updateTexture() {
+            if (!originalTexture) return;
+
+            const activeObject = fabricCanvas.getActiveObject();
+            
+            // Temporarily hide controls for texture generation
+            if (activeObject) {
+                activeObject.set({
+                    hasControls: false,
+                    hasBorders: false
+                });
+                fabricCanvas.renderAll();
+            }
+
+            const combinedCanvas = document.createElement('canvas');
+            const context = combinedCanvas.getContext('2d');
+            
+            combinedCanvas.width = originalTexture.image.width;
+            combinedCanvas.height = originalTexture.image.height;
+
+            context.drawImage(originalTexture.image, 0, 0);
+            context.drawImage(fabricCanvas.getElement(), 0, 0, combinedCanvas.width, combinedCanvas.height);
+
+            const newTexture = new THREE.CanvasTexture(combinedCanvas);
+            newTexture.flipY = false;
+            newTexture.encoding = THREE.sRGBEncoding;
+            
+            model.traverse((node) => {
+                if (node.isMesh && node.material) {
+                    if (node.material.map) {
+                        node.material.map.dispose();
+                    }
+                    node.material.map = newTexture;
+                    node.material.needsUpdate = true;
+                }
+            });
+
+            if (activeObject) {
+                activeObject.set({
+                    hasControls: true,
+                    hasBorders: true
+                });
+                fabricCanvas.setActiveObject(activeObject);
+                fabricCanvas.renderAll();
+            }
+        }
+
+        Promise.all([
+            new Promise((resolve, reject) => textureLoader.load('shirt.png', resolve, undefined, reject)),
+            new Promise((resolve, reject) => gltfLoader.load('shirt.gltf', resolve, undefined, reject))
+        ]).then(([texture, gltf]) => {
+            originalTexture = texture;
+            originalTexture.flipY = false;
+            originalTexture.encoding = THREE.sRGBEncoding;
+
+            model = gltf.scene;
+            model.traverse((node) => {
+                if (node.isMesh) {
+                    node.material = new THREE.MeshStandardMaterial({
+                        map: originalTexture
+                    });
+                }
+            });
+
+            const box = new THREE.Box3().setFromObject(model);
+            const center = box.getCenter(new THREE.Vector3());
+            model.position.sub(center);
+            scene.add(model);
+        }).catch(error => {
+            console.error('An error happened during loading:', error);
+            modelError.style.display = 'block';
+        });
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.enableZoom = true;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.5;
+        controls.target.set(0, 0, 0);
+        camera.position.z = 1.2;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        const addTextButton = document.getElementById('add-text');
+        const addImageInput = document.getElementById('add-image');
+        const fontFamilySelect = document.getElementById('font-family');
+        const fontSizeInput = document.getElementById('font-size');
+        const fillColorInput = document.getElementById('fill-color');
+        const strokeColorInput = document.getElementById('stroke-color');
+
+        fontFamilySelect.addEventListener('change', (e) => {
+            const activeObject = fabricCanvas.getActiveObject();
+            if (activeObject && activeObject.type === 'i-text') {
+                activeObject.set('fontFamily', e.target.value);
+                fabricCanvas.renderAll();
+                updateTexture();
+            }
+        });
+
+        fontSizeInput.addEventListener('input', (e) => {
+            const activeObject = fabricCanvas.getActiveObject();
+            if (activeObject && activeObject.type === 'i-text') {
+                activeObject.set('fontSize', parseInt(e.target.value));
+                fabricCanvas.renderAll();
+                updateTexture();
+            }
+        });
+
+        fillColorInput.addEventListener('input', (e) => {
+            const activeObject = fabricCanvas.getActiveObject();
+            if (activeObject && activeObject.type === 'i-text') {
+                activeObject.set('fill', e.target.value);
+                fabricCanvas.renderAll();
+                updateTexture();
+            }
+        });
+
+        addTextButton.addEventListener('click', () => {
+            const text = new fabric.IText('Hello', {
+                left: 100,
+                top: 100,
+                fontFamily: fontFamilySelect.value,
+                fontSize: parseInt(fontSizeInput.value),
+                fill: fillColorInput.value,
+                stroke: 'transparent',
+                strokeWidth: 0
+            });
+            fabricCanvas.add(text);
+            updateTexture();
+        });
+
+        addImageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    fabric.Image.fromURL(event.target.result, (img) => {
+                        fabricCanvas.add(img);
+                        updateTexture();
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Drag and Drop Image Upload
+        const canvasFlexContainer = document.getElementById('canvas-flex-container'); // Changed from canvas-container
+
+        canvasFlexContainer.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            // Optional: Add a visual indicator
+        });
+
+        canvasFlexContainer.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            // Optional: Remove the visual indicator
+        });
+
+        canvasFlexContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    fabric.Image.fromURL(event.target.result, (img) => {
+                        img.set({
+                            left: fabricCanvas.width / 2,
+                            top: fabricCanvas.height / 2,
+                            originX: 'center',
+                            originY: 'center',
+                        });
+                        fabricCanvas.add(img);
+                        fabricCanvas.setActiveObject(img);
+                        updateTexture();
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        fabricCanvas.on('object:modified', updateTexture);
+
+        function updateToolPanel(target) {
+            if (target && target.type === 'i-text') {
+                fontFamilySelect.value = target.fontFamily;
+                fontSizeInput.value = target.fontSize;
+                fillColorInput.value = target.fill;
+            }
+        }
+
+        fabricCanvas.on('selection:created', (e) => {
+            updateToolPanel(e.target);
+        });
+
+        fabricCanvas.on('selection:updated', (e) => {
+            updateToolPanel(e.target);
+        });
+
+        fabricCanvas.on('selection:cleared', () => {
+            fontFamilySelect.value = 'Helvetica';
+            fontSizeInput.value = 40;
+            fillColorInput.value = '#000000';
+        });
+
+        document.body.addEventListener('keydown', (e) => {
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+                const activeObject = fabricCanvas.getActiveObject();
+                if (activeObject && !activeObject.isEditing) {
+                    fabricCanvas.remove(activeObject);
+                    fabricCanvas.discardActiveObject();
+                    fabricCanvas.renderAll(); // Re-render the canvas after removal
+                    updateTexture(); // Update the texture with the cleared canvas
+                }
+            }
+        });
+
+        window.addEventListener('resize', onWindowResize, false);
+        function onWindowResize() {
+            camera.aspect = modelCanvas.clientWidth / modelCanvas.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(modelCanvas.clientWidth, modelCanvas.clientHeight);
+        }
+
+        const generateTemplateButton = document.getElementById('generate-template');
+        generateTemplateButton.addEventListener('click', () => {
+            const dataURL = fabricCanvas.toDataURL({
+                format: 'png',
+                quality: 1.0
+            });
+            const link = document.createElement('a');
+            link.href = dataURL;
+            link.download = 'tshirt-design.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        const toolPanel = document.getElementById('tool-panel');
+        const toolHeader = toolPanel.querySelector('.tool-header');
+        const toggleButton = document.getElementById('toggle-panel');
+        let isDragging = false;
+        let offsetX, offsetY;
+
+        toolHeader.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            offsetX = e.clientX - toolPanel.offsetLeft;
+            offsetY = e.clientY - toolPanel.offsetTop;
+            toolHeader.style.cursor = 'grabbing';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                let newLeft = e.clientX - offsetX;
+                let newTop = e.clientY - offsetY;
+                const maxLeft = window.innerWidth - toolPanel.offsetWidth;
+                const maxTop = window.innerHeight - toolPanel.offsetHeight;
+                newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+                newTop = Math.max(0, Math.min(newTop, maxTop));
+                toolPanel.style.left = `${newLeft}px`;
+                toolPanel.style.top = `${newTop}px`;
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            toolHeader.style.cursor = 'grab';
+        });
+
+        toggleButton.addEventListener('click', () => {
+            toolPanel.classList.toggle('collapsed');
+            const icon = toggleButton.querySelector('i');
+            icon.classList.toggle('fa-minus');
+            icon.classList.toggle('fa-plus');
+        });
+    </script>
+</body>
+</html>

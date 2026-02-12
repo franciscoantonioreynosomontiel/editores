@@ -1,0 +1,1190 @@
+<!DOCTYPE html>     
+<html lang="en">     
+<head>     
+    <meta charset="UTF-8">     
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">     
+    <title>3D X-banner Customizer</title>     
+    <link rel="icon" href="data:;">     
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">     
+    <style>     
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');     
+        body, html {     
+            font-family: 'Roboto', sans-serif;     
+            margin: 0;     
+            padding: 0;     
+            width: 100%;     
+            height: 100%;     
+            background-color: #f5f5f5;     
+            color: #333;     
+            overflow: hidden;     
+        }     
+        #main-container {     
+            display: flex;     
+            width: 100%;     
+            height: 100%;     
+        }     
+        #canvas-flex-container, #model-container {     
+            flex: 1;     
+            display: flex;     
+            justify-content: center;     
+            align-items: center;     
+            padding: 20px;     
+            box-sizing: border-box;     
+            height: 100%;     
+        }     
+        #canvas-wrapper {     
+            /* Dimensions will be set by JS based on aspect ratio */   
+            width: 580px;     
+            height: 580px;     
+            position: relative;     
+            background-image: url('stickertemplate.png');     
+            background-size: contain;     
+            background-repeat: no-repeat;     
+            background-position: center;     
+            border: 1px solid #ccc;
+            border-radius: 50%;
+            overflow: hidden;
+        }     
+        #texture-canvas {     
+            border: 2px dashed #ddd;     
+            border-radius: 50%;     
+            background-color: rgba(255, 255, 255, 0);     
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);     
+        }     
+        #model-container {     
+            background-color: #e0e0e0;     
+            position: relative;     
+        }     
+        #model-canvas {     
+            width: 100%;     
+            height: 100%;     
+            display: block;     
+        }     
+        #model-error {     
+            display: none;     
+            position: absolute;     
+            color: #ff0000;     
+            font-size: 1.2em;     
+            text-align: center;     
+            padding: 20px;     
+            background-color: rgba(255, 255, 255, 0.8);     
+            border-radius: 8px;     
+            z-index: 10;    
+        }     
+        .tool-panel {     
+            position: absolute;     
+            top: 20px;     
+            left: 20px;     
+            background-color: #ffffff;     
+            padding: 20px;     
+            border-radius: 12px;     
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);     
+            width: 280px;     
+            z-index: 1000;     
+            display: flex;     
+            flex-direction: column;     
+            transition: transform 0.3s ease-in-out;     
+        }     
+        .tool-panel.collapsed .tool-content {     
+            display: none;     
+        }     
+        .tool-panel.collapsed {     
+            height: auto;     
+        }     
+        .tool-header {     
+            display: flex;     
+            justify-content: space-between;     
+            align-items: center;     
+            cursor: grab;     
+            padding-bottom: 10px;     
+            border-bottom: 2px solid #eee;     
+            margin-bottom: 20px;     
+        }     
+        .tool-header h3 {     
+            margin: 0;     
+            font-size: 20px;     
+            color: #555;     
+            display: flex;     
+            align-items: center;     
+        }     
+        .tool-header i {     
+            margin-right: 10px;     
+        }     
+        #toggle-panel, #toggle-product-panel, #toggle-shapes-panel, #toggle-bag-panel {     
+            background: none;     
+            border: none;     
+            font-size: 20px;     
+            cursor: pointer;     
+            color: #888;     
+        }     
+        .tool-section {     
+            margin-bottom: 20px;     
+        }     
+        .tool-section h4 {     
+            margin: 0 0 15px 0;     
+            font-size: 16px;     
+            color: #666;     
+            display: flex;     
+            align-items: center;     
+        }     
+        .tool-section i {     
+            margin-right: 8px;     
+        }     
+        .tool-option {     
+            display: flex;     
+            justify-content: space-between;     
+            align-items: center;     
+            margin-bottom: 12px;     
+        }     
+        .tool-option label {     
+            font-size: 14px;     
+            display: flex;     
+            align-items: center;     
+        }     
+        .tool-option i {     
+            margin-right: 8px;     
+        }     
+        .icon-button, #generate-template {     
+            background: none;     
+            border: 1px solid #ddd;     
+            border-radius: 8px;     
+            padding: 8px;     
+            cursor: pointer;     
+            font-size: 16px;     
+            color: #555;     
+            transition: all 0.2s;     
+        }     
+        .icon-button:hover, #generate-template:hover {     
+            background-color: #f0f0f0;     
+            border-color: #ccc;     
+        }     
+        .file-input {     
+            width: 120px;     
+        }     
+        select, input[type="range"], input[type="color"] {     
+            border: 1px solid #ddd;     
+            border-radius: 8px;     
+            padding: 5px;     
+        }     
+        input[type="range"] {     
+            width: 120px;     
+        }     
+        input[type="color"] {     
+            height: 35px;     
+        }     
+        .tool-footer {     
+            margin-top: auto;     
+        }     
+        #generate-template {     
+            width: 100%;     
+            background-color: #ff8c00;     
+            color: white;     
+            border: none;     
+            padding: 12px;     
+            font-size: 16px;     
+            display: flex;     
+            justify-content: center;     
+            align-items: center;     
+        }     
+        #generate-template i {     
+            margin-right: 8px;     
+        }     
+        .design-actions {     
+            display: flex;     
+            justify-content: space-around;     
+            gap: 10px;     
+        }     
+        .design-btn {     
+            display: flex;     
+            flex-direction: column;     
+            align-items: center;     
+            justify-content: center;     
+            padding: 15px;     
+            border: 1px solid #ddd;     
+            border-radius: 8px;     
+            cursor: pointer;     
+            transition: all 0.2s;     
+            font-size: 14px;     
+            color: #555;     
+            background-color: #fafafa;     
+            flex-grow: 1;     
+        }     
+        .design-btn:hover {     
+            background-color: #f0f0f0;     
+            border-color: #ccc;     
+        }     
+        .design-btn i {     
+            font-size: 24px;     
+            margin-bottom: 8px;     
+        }     
+  
+        /* Product Panel Styles */  
+        #product-panel {  
+            left: auto;  
+            right: 20px;  
+            background-color: #efefef;  
+        }  
+        .product-grid {  
+            display: grid;  
+            grid-template-columns: 1fr 1fr;  
+            gap: 15px;  
+            padding: 5px;  
+        }  
+        .neumorphic-btn {  
+            display: flex;  
+            flex-direction: column;  
+            align-items: center;  
+            justify-content: center;  
+            width: 100px;  
+            height: 100px;  
+            background: #efefef;  
+            border-radius: 12px;  
+            box-shadow:  6px 6px 12px #c5c5c5,  
+                         -6px -6px 12px #ffffff;  
+            cursor: pointer;  
+            transition: all 0.2s ease;  
+            color: #555;  
+            margin: auto;  
+        }  
+        .neumorphic-btn:active {  
+            box-shadow: inset 6px 6px 12px #c5c5c5,  
+                        inset -6px -6px 12px #ffffff;  
+        }  
+        .neumorphic-btn i {  
+            font-size: 24px;  
+            margin-bottom: 8px;  
+            color: #ff8c00;  
+        }  
+        .neumorphic-btn span {  
+            font-size: 12px;  
+            text-align: center;  
+        }  
+          
+        .neumorphic-btn a {  
+            text-decoration: none;  
+            color: inherit;  
+            display: flex;  
+            flex-direction: column;  
+            align-items: center;  
+            justify-content: center;  
+            width: 100%;  
+            height: 100%;  
+        }  
+  
+        /* Shapes Panel Styles */  
+        #shapes-panel {  
+            left: 320px;  
+        }  
+  
+        /* Logo Overlay Styles */  
+        #logo-overlay {  
+            position: absolute;  
+            bottom: 20px;  
+            left: 20px;  
+            width: 150px;  
+            z-index: 2000;  
+            line-height: 0;  
+        }  
+        #logo-img {  
+            width: 100%;  
+            height: auto;  
+            display: block;  
+            cursor: move;  
+            pointer-events: auto;  
+            user-select: none;  
+            -webkit-user-drag: none;  
+        }  
+        #logo-resize-handle {  
+            width: 12px;  
+            height: 12px;  
+            background-color: #ff8c00;  
+            border-radius: 50%;  
+            position: absolute;  
+            bottom: -6px;  
+            right: -6px;  
+            cursor: se-resize;  
+            z-index: 2001;  
+        }  
+  
+        /* Shapes Panel Styles */  
+        #shapes-panel {  
+            left: 320px;  
+        }
+        
+        /* Bag Panel Styles */
+        #bag-panel {
+            left: 620px;
+        }
+    </style>     
+</head>     
+<body>     
+    <div id="logo-overlay">  
+        <img src="https://menutech.services/assets/img/logomt.png" id="logo-img" alt="Logo" draggable="false">  
+        <div id="logo-resize-handle"></div>  
+    </div>  
+  
+    <div id="tool-panel" class="tool-panel">     
+        <div class="tool-header">     
+            <h3><i class="fas fa-tools"></i> X-banner Tool</h3>     
+            <button id="toggle-panel"><i class="fas fa-minus"></i></button>     
+        </div>     
+        <div class="tool-content">     
+            <div class="tool-section">     
+                <h4><i class="fas fa-palette"></i> Design</h4>     
+                <div class="design-actions">     
+                    <button id="add-text" class="design-btn">     
+                        <i class="fas fa-font"></i>     
+                        <span>Add Text</span>     
+                    </button>     
+                    <label for="add-image" class="design-btn">     
+                        <i class="fas fa-image"></i>     
+                        <span>Upload</span>     
+                    </label>     
+                    <input type="file" id="add-image" accept="image/*" style="display: none;">     
+                </div>     
+            </div>     
+            <div class="tool-section">     
+                <h4><i class="fas fa-cog"></i> Options</h4>     
+                <div class="tool-option">     
+                    <label for="font-family">Font</label>     
+                    <select id="font-family">     
+                        <option value="Arial">Arial</option>     
+                        <option value="Helvetica" selected>Helvetica</option>     
+                        <option value="Times New Roman">Times New Roman</option>     
+                        <option value="Courier New">Courier New</option>     
+                    </select>     
+                </div>     
+                <div class="tool-option">     
+                    <label for="font-size">Size</label>     
+                    <input type="range" id="font-size" min="10" max="100" value="40">     
+                </div>     
+                <div class="tool-option">     
+                    <label for="fill-color">Fill</label>     
+                    <input type="color" id="fill-color" value="#000000">     
+                </div>     
+            </div>
+            <div class="tool-footer">     
+                <button id="generate-template"><i class="fas fa-download"></i> Download Design</button>     
+            </div>     
+        </div>     
+    </div>
+
+    <div id="bag-panel" class="tool-panel">
+        <div class="tool-header" id="bag-panel-header">
+            <h3><i class="fas fa-shopping-bag"></i> Bag Options</h3>
+            <button id="toggle-bag-panel"><i class="fas fa-minus"></i></button>
+        </div>
+        <div class="tool-content">
+            <div class="tool-section">
+                <h4><i class="fas fa-palette"></i> Solid Color</h4>
+                <div class="tool-option">
+                    <label for="bag-color">Bag Color</label>
+                    <input type="color" id="bag-color" value="#ffffff">
+                </div>
+            </div>
+            <div class="tool-section">
+                <h4><i class="fas fa-texture"></i> Texture</h4>
+                <div class="tool-option">
+                    <label for="bag-texture">Material</label>
+                    <select id="bag-texture">
+                        <option value="none">Solid Color (None)</option>
+                        <option value="kraft">Kraft Paper</option>
+                        <option value="recycled">Recycled Paper</option>
+                        <option value="wrinkled">Wrinkled Paper</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="product-panel" class="tool-panel">  
+        <div class="tool-header" id="product-panel-header">  
+            <h3><i class="fas fa-box-open"></i> Products</h3>  
+            <button id="toggle-product-panel"><i class="fas fa-minus"></i></button>  
+        </div>  
+        <div class="tool-content product-grid">  
+            <div class="neumorphic-btn">  
+                <a href="#">  
+                    <i class="fas fa-shirt"></i>  
+                    <span>Shirt</span>  
+                </a>  
+            </div>  
+            <div class="neumorphic-btn">  
+                <a href="#">  
+                    <i class="fas fa-image"></i>  
+                    <span>Poster</span>  
+                </a>  
+            </div>  
+            <div class="neumorphic-btn">  
+                <a href="#">  
+                    <i class="fas fa-note-sticky"></i>  
+                    <span>Stickers</span>  
+                </a>  
+            </div>  
+            <div class="neumorphic-btn">  
+                <a href="#">  
+                    <i class="fas fa-vest"></i>  
+                    <span>Hoodies</span>  
+                </a>  
+            </div>  
+            <div class="neumorphic-btn">  
+                <a href="#">  
+                    <i class="fas fa-flag"></i>  
+                    <span>Flag</span>  
+                </a>  
+            </div>  
+            <div class="neumorphic-btn">  
+                <a href="#">  
+                    <i class="fas fa-scroll"></i>  
+                    <span>Banner</span>  
+                </a>  
+            </div>  
+            <div class="neumorphic-btn">  
+                <a href="#">  
+                    <i class="fas fa-ad"></i>  
+                    <span>X-banner</span>  
+                </a>  
+            </div>  
+            <div class="neumorphic-btn">  
+                <a href="#">  
+                    <i class="fas fa-paper-plane"></i>  
+                    <span>Flyers</span>  
+                </a>  
+            </div>  
+        </div>  
+    </div>  
+      
+    <div id="shapes-panel" class="tool-panel">  
+        <div class="tool-header" id="shapes-panel-header">  
+            <h3><i class="fas fa-shapes"></i> Shapes</h3>  
+            <button id="toggle-shapes-panel"><i class="fas fa-minus"></i></button>  
+        </div>  
+        <div class="tool-content">  
+            <div class="tool-section">  
+                <h4><i class="fas fa-plus-circle"></i> Add Shape</h4>  
+                <div class="product-grid" style="grid-template-columns: 1fr 1fr 1fr;">  
+                    <div class="neumorphic-btn" id="add-rect" style="width: 80px; height: 80px;">  
+                        <i class="fas fa-square"></i>  
+                        <span>Rect</span>  
+                    </div>  
+                    <div class="neumorphic-btn" id="add-circle" style="width: 80px; height: 80px;">  
+                        <i class="fas fa-circle"></i>  
+                        <span>Circle</span>  
+                    </div>  
+                    <div class="neumorphic-btn" id="add-triangle" style="width: 80px; height: 80px;">  
+                        <i class="fas fa-play" style="transform: rotate(-90deg);"></i>  
+                        <span>Triangle</span>  
+                    </div>  
+                </div>  
+            </div>  
+            <div class="tool-section">  
+                <h4><i class="fas fa-palette"></i> Configuration</h4>  
+                <div class="tool-option">  
+                    <label for="shape-color">Color</label>  
+                    <input type="color" id="shape-color" value="#ff8c00">  
+                </div>  
+                <div class="tool-option">  
+                    <label for="shape-opacity">Opacity</label>  
+                    <input type="range" id="shape-opacity" min="0.1" max="1" step="0.1" value="1">  
+                </div>  
+            </div>  
+        </div>  
+    </div>  
+    <div id="main-container">     
+        <div id="canvas-flex-container">     
+            <div id="canvas-wrapper">     
+                <canvas id="texture-canvas" width="580" height="580"></canvas>     
+            </div>     
+        </div>     
+        <div id="model-container">     
+            <canvas id="model-canvas"></canvas>     
+            <div id="model-error">Could not load 3D model. Check console for details.</div>     
+        </div>     
+    </div>     
+     
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>     
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>     
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>     
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.5.0/fabric.min.js"></script>     
+     
+    <script>     
+        const modelCanvas = document.getElementById('model-canvas');     
+        const textureCanvas = document.getElementById('texture-canvas');     
+        const modelError = document.getElementById('model-error');     
+        const scene = new THREE.Scene();     
+        const camera = new THREE.PerspectiveCamera(45, modelCanvas.clientWidth / modelCanvas.clientHeight, 0.1, 1000);     
+        const renderer = new THREE.WebGLRenderer({    
+            canvas: modelCanvas,    
+            antialias: true,    
+            alpha: true,   
+            logarithmicDepthBuffer: true,   
+            precision: 'highp'   
+        });     
+        renderer.setSize(modelCanvas.clientWidth, modelCanvas.clientHeight);     
+        renderer.setClearColor(0xf0f0f0, 0);     
+        renderer.outputEncoding = THREE.sRGBEncoding;     
+     
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);     
+        scene.add(ambientLight);     
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);     
+        directionalLight.position.set(5, 5, 5);     
+        scene.add(directionalLight);     
+     
+    const fabricCanvas = new fabric.Canvas('texture-canvas', { 
+            preserveObjectStacking: true 
+        });     
+        let model;     
+        let originalTexture;     
+        const textureLoader = new THREE.TextureLoader();     
+        const gltfLoader = new THREE.GLTFLoader();     
+     
+        function resizeCanvas(aspectRatio) {   
+            const maxWidth = 580;   
+            const maxHeight = 580;   
+               
+            let width = maxWidth;   
+            let height = width / aspectRatio;   
+               
+            if (height > maxHeight) {   
+                height = maxHeight;   
+                width = height * aspectRatio;   
+            }   
+               
+            const wrapper = document.getElementById('canvas-wrapper');   
+               
+            wrapper.style.width = width + 'px';   
+            wrapper.style.height = height + 'px';   
+               
+            // Resize Fabric canvas   
+            fabricCanvas.setDimensions({ width: width, height: height });   
+            
+            // Update clip path
+            const radius = Math.min(width, height) / 2;
+            const circleClip = new fabric.Circle({
+                radius: radius,
+                left: width / 2,
+                top: height / 2,
+                originX: 'center',
+                originY: 'center',
+                selectable: false
+            });
+            fabricCanvas.clipPath = circleClip;
+            
+            fabricCanvas.renderAll();   
+        }   
+   
+        function updateTexture() {     
+            if (!model || !originalTexture) return;     
+     
+            const activeObject = fabricCanvas.getActiveObject();     
+            if (activeObject) {     
+                activeObject.set({ hasControls: false, hasBorders: false });     
+                fabricCanvas.renderAll();     
+            }     
+              
+            // Temporarily set all objects to full opacity for texture generation  
+            const savedOpacities = [];  
+            fabricCanvas.getObjects().forEach(obj => {  
+                savedOpacities.push(obj.opacity);  
+                obj.set('opacity', 1);  
+            });  
+            fabricCanvas.renderAll();  
+  
+            const combinedCanvas = document.createElement('canvas');     
+            const context = combinedCanvas.getContext('2d');     
+            combinedCanvas.width = originalTexture.image.width;     
+            combinedCanvas.height = originalTexture.image.height;     
+     
+            context.drawImage(originalTexture.image, 0, 0);     
+            context.drawImage(fabricCanvas.getElement(), 0, 0, combinedCanvas.width, combinedCanvas.height);     
+     
+            const newTexture = new THREE.CanvasTexture(combinedCanvas);     
+            newTexture.flipY = false;    
+            newTexture.encoding = THREE.sRGBEncoding;     
+                 
+            model.traverse((node) => {     
+                if (node.isMesh && node.material.name === 'xbanner') {     
+                    if (node.material.map && node.material.map !== originalTexture) {     
+                        node.material.map.dispose();     
+                    }     
+                    node.material.map = newTexture;     
+                    node.material.needsUpdate = true;     
+                }     
+            });     
+              
+            // Restore opacities  
+            fabricCanvas.getObjects().forEach((obj, i) => {  
+                obj.set('opacity', savedOpacities[i]);  
+            });  
+            fabricCanvas.renderAll();  
+     
+            if (activeObject) {     
+                activeObject.set({ hasControls: true, hasBorders: true });     
+                fabricCanvas.setActiveObject(activeObject);     
+                fabricCanvas.renderAll();     
+            }     
+        }     
+     
+        // Load Assets     
+        async function loadAssets() {     
+            try {     
+                const gltf = await new Promise((resolve, reject) =>      
+                    gltfLoader.load('sticker.gltf', resolve, undefined, (err) => {     
+                        console.error('Error loading GLTF:', err);     
+                        reject(err);     
+                    })     
+                );     
+     
+                model = gltf.scene;     
+                   
+                // Identify sticker node
+                let xbannerNode = null;
+                model.traverse((node) => {
+                    // Look for the Cylinder mesh or material 'texturaCircle'
+                    if (node.isMesh && (node.name === 'Cylinder' || node.material.name === 'texturaCircle')) {
+                        xbannerNode = node;
+                    }
+                });
+   
+                if (xbannerNode) {   
+                    // Try to load sticker.png to ensure it works with the file provided
+                    try {
+                        const stickerTexture = await new Promise((resolve, reject) => {
+                            new THREE.TextureLoader().load('sticker.png', resolve, undefined, (err) => resolve(null));
+                        });
+                        
+                        if (stickerTexture) {
+                            originalTexture = stickerTexture;
+                            xbannerNode.material.map = originalTexture;
+                        } else if (xbannerNode.material.map) {
+                            originalTexture = xbannerNode.material.map;
+                        } else {
+                            // Create white texture if missing
+                            const canvas = document.createElement('canvas');
+                            canvas.width = 1024; canvas.height = 1024;
+                            const ctx = canvas.getContext('2d');
+                            ctx.fillStyle = 'white'; ctx.fillRect(0,0,1024,1024);
+                            originalTexture = new THREE.CanvasTexture(canvas);
+                            xbannerNode.material.map = originalTexture;
+                        }
+                    } catch (e) {
+                         console.error("Error setting up texture:", e);
+                    }
+                       
+                    if (originalTexture) {
+                        originalTexture.encoding = THREE.sRGBEncoding;   
+                        originalTexture.flipY = false;   
+                        // Resize canvas to match texture aspect ratio   
+                        if (originalTexture.image && originalTexture.image.width && originalTexture.image.height) {   
+                            resizeCanvas(originalTexture.image.width / originalTexture.image.height);   
+                        }   
+                    }
+
+                    xbannerNode.material.name = 'xbanner'; // Ensure name is consistent   
+                    xbannerNode.material.needsUpdate = true;   
+                }   
+     
+                // Auto-center and scale camera     
+                const box = new THREE.Box3().setFromObject(model);     
+                const center = box.getCenter(new THREE.Vector3());     
+                const size = box.getSize(new THREE.Vector3());     
+                model.position.sub(center);     
+                scene.add(model);     
+     
+                const maxDim = Math.max(size.x, size.y, size.z);     
+                  const fov = camera.fov * (Math.PI / 180);   
+                let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));     
+                cameraZ *= 1.5; // Zoom out a bit     
+                camera.position.z = cameraZ;     
+                camera.updateProjectionMatrix();     
+                if (controls) controls.target.set(0, 0, 0);     
+     
+            } catch (error) {     
+                console.error('Detailed Loading Error:', error);     
+                modelError.style.display = 'block';     
+                modelError.innerHTML = `Error: ${error.message || 'Check console'}`;     
+            }     
+        }     
+     
+        loadAssets();     
+     
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);     
+        controls.enableDamping = true;     
+        controls.dampingFactor = 0.05;     
+        controls.autoRotate = true;     
+        controls.autoRotateSpeed = 0.5;     
+     
+        function animate() {     
+            requestAnimationFrame(animate);     
+            controls.update();     
+            renderer.render(scene, camera);     
+        }     
+        animate();     
+     
+        // UI Events     
+        const addTextButton = document.getElementById('add-text');     
+        const addImageInput = document.getElementById('add-image');     
+        const fontFamilySelect = document.getElementById('font-family');     
+        const fontSizeInput = document.getElementById('font-size');     
+        const fillColorInput = document.getElementById('fill-color');     
+        const bagColorInput = document.getElementById('bag-color');
+        const bagTextureSelect = document.getElementById('bag-texture');
+
+        function updateBagMaterial(updateFn) {
+            if (!model) return;
+            model.traverse((node) => {
+                if (node.isMesh && node.name !== 'Cylinder' && node.material && node.material.name !== 'texturaCircle' && node.material.name !== 'xbanner') {
+                    // Update bag materials (Brown_Cardboard_material5, Brown_Cardboard_material6, paper_cardboard_material8)
+                    if (node.material.name.includes('Cardboard') || node.material.name.includes('cardboard')) {
+                        updateFn(node.material);
+                        node.material.needsUpdate = true;
+                    }
+                }
+            });
+        }
+
+        bagColorInput.addEventListener('input', (e) => {
+            const color = new THREE.Color(e.target.value);
+            // If a texture is currently selected, don't clear it immediately, just tint it.
+            // But if 'none' is selected, we rely on color.
+            updateBagMaterial((material) => {
+                material.color = color;
+                if (bagTextureSelect.value === 'none') {
+                     material.map = null;
+                }
+            });
+        });
+
+        function createTexture(type) {
+            const size = 512;
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+
+            if (type === 'kraft') {
+                // Kraft / Cardboard
+                ctx.fillStyle = '#C8A375'; 
+                ctx.fillRect(0, 0, size, size);
+                
+                // Noise
+                for (let i = 0; i < 80000; i++) {
+                    const x = Math.random() * size;
+                    const y = Math.random() * size;
+                    const alpha = Math.random() * 0.08;
+                    ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
+                    ctx.fillRect(x, y, 2, 2);
+                }
+                
+                // Fibers
+                for (let i = 0; i < 300; i++) {
+                    const x = Math.random() * size;
+                    const y = Math.random() * size;
+                    const len = Math.random() * 20;
+                    const angle = Math.random() * Math.PI * 2;
+                    ctx.strokeStyle = `rgba(90, 60, 30, 0.05)`;
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                    ctx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len);
+                    ctx.stroke();
+                }
+
+            } else if (type === 'recycled') {
+                // Recycled Paper (White/Grey with speckles)
+                ctx.fillStyle = '#F0F0F0';
+                ctx.fillRect(0, 0, size, size);
+
+                // Grey noise
+                for (let i = 0; i < 50000; i++) {
+                    const x = Math.random() * size;
+                    const y = Math.random() * size;
+                    const shade = Math.floor(Math.random() * 100 + 100);
+                    ctx.fillStyle = `rgba(${shade}, ${shade}, ${shade}, 0.1)`;
+                    ctx.fillRect(x, y, 2, 2);
+                }
+
+                // Dark speckles
+                for (let i = 0; i < 500; i++) {
+                    const x = Math.random() * size;
+                    const y = Math.random() * size;
+                    ctx.fillStyle = 'rgba(50, 50, 50, 0.2)';
+                    ctx.beginPath();
+                    ctx.arc(x, y, Math.random() * 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+            } else if (type === 'wrinkled') {
+                // Wrinkled Paper
+                ctx.fillStyle = '#EAE6D6';
+                ctx.fillRect(0, 0, size, size);
+
+                // Base noise
+                for (let i = 0; i < 40000; i++) {
+                    const x = Math.random() * size;
+                    const y = Math.random() * size;
+                    ctx.fillStyle = 'rgba(0,0,0,0.02)';
+                    ctx.fillRect(x, y, 2, 2);
+                }
+
+                // Wrinkles (lines)
+                for (let i = 0; i < 50; i++) {
+                    ctx.strokeStyle = 'rgba(0,0,0,0.05)';
+                    ctx.lineWidth = Math.random() * 2 + 1;
+                    ctx.beginPath();
+                    const startX = Math.random() * size;
+                    const startY = Math.random() * size;
+                    ctx.moveTo(startX, startY);
+                    
+                    // Jagged line
+                    let cx = startX;
+                    let cy = startY;
+                    for(let k=0; k<10; k++) {
+                        cx += (Math.random() - 0.5) * 100;
+                        cy += (Math.random() - 0.5) * 100;
+                        ctx.lineTo(cx, cy);
+                    }
+                    ctx.stroke();
+                }
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            return texture;
+        }
+
+        bagTextureSelect.addEventListener('change', (e) => {
+            const type = e.target.value;
+            if (type === 'none') {
+                updateBagMaterial((material) => {
+                    material.map = null;
+                    material.needsUpdate = true;
+                });
+            } else {
+                const texture = createTexture(type);
+                updateBagMaterial((material) => {
+                    material.map = texture;
+                    // Preserve the currently selected color
+                    const currentColor = new THREE.Color(bagColorInput.value);
+                    material.color = currentColor;
+                    material.needsUpdate = true;
+                });
+            }
+        });
+     
+        fontFamilySelect.addEventListener('change', (e) => {     
+            const activeObject = fabricCanvas.getActiveObject();     
+            if (activeObject && activeObject.type === 'i-text') {     
+                activeObject.set('fontFamily', e.target.value);     
+                fabricCanvas.renderAll();     
+                updateTexture();     
+            }     
+        });     
+     
+        fontSizeInput.addEventListener('input', (e) => {     
+            const activeObject = fabricCanvas.getActiveObject();     
+            if (activeObject && activeObject.type === 'i-text') {     
+                activeObject.set('fontSize', parseInt(e.target.value));     
+                fabricCanvas.renderAll();     
+                updateTexture();     
+            }     
+        });     
+     
+        fillColorInput.addEventListener('input', (e) => {     
+            const activeObject = fabricCanvas.getActiveObject();     
+            if (activeObject && activeObject.type === 'i-text') {     
+                activeObject.set('fill', e.target.value);     
+                fabricCanvas.renderAll();     
+                updateTexture();     
+            }     
+        });     
+     
+        addTextButton.addEventListener('click', () => {     
+            const text = new fabric.IText('Text', {     
+                left: 100, top: 100,     
+                fontFamily: fontFamilySelect.value,     
+                fontSize: parseInt(fontSizeInput.value),     
+                fill: fillColorInput.value     
+            });     
+            fabricCanvas.add(text);     
+            updateTexture();     
+        });     
+     
+        addImageInput.addEventListener('change', (e) => {     
+            const file = e.target.files[0];     
+            if (file) {     
+                const reader = new FileReader();     
+                reader.onload = (event) => {     
+                    fabric.Image.fromURL(event.target.result, (img) => {     
+                        img.scaleToWidth(200);     
+                        fabricCanvas.add(img);     
+                        updateTexture();     
+                    });     
+                };     
+                reader.readAsDataURL(file);     
+            }     
+        });     
+     
+        fabricCanvas.on('object:modified', updateTexture);     
+        fabricCanvas.on('selection:cleared', () => {     
+            fontFamilySelect.value = 'Helvetica';     
+            fontSizeInput.value = 40;     
+            fillColorInput.value = '#000000';     
+        });     
+     
+        window.addEventListener('resize', () => {     
+            camera.aspect = modelCanvas.clientWidth / modelCanvas.clientHeight;     
+            camera.updateProjectionMatrix();     
+            renderer.setSize(modelCanvas.clientWidth, modelCanvas.clientHeight);     
+        });     
+     
+        document.getElementById('generate-template').addEventListener('click', () => {     
+            const dataURL = fabricCanvas.toDataURL({ format: 'png', quality: 1.0 });     
+            const link = document.createElement('a');     
+            link.href = dataURL;     
+            link.download = 'Stickers-design.png';     
+            link.click();     
+        });     
+   
+        // Drag and Drop Implementation   
+        const canvasWrapper = document.getElementById('canvas-wrapper');   
+   
+        canvasWrapper.addEventListener('dragover', (e) => {   
+            e.preventDefault();   
+            e.stopPropagation();   
+            e.dataTransfer.dropEffect = 'copy';   
+            canvasWrapper.style.border = '2px solid #ff8c00';   
+        });   
+   
+        canvasWrapper.addEventListener('dragleave', (e) => {   
+            e.preventDefault();   
+            e.stopPropagation();   
+            canvasWrapper.style.border = '1px solid #ccc';   
+        });   
+   
+        canvasWrapper.addEventListener('drop', (e) => {   
+            e.preventDefault();   
+            e.stopPropagation();   
+            canvasWrapper.style.border = '1px solid #ccc';   
+   
+            const files = e.dataTransfer.files;   
+            if (files && files.length > 0) {   
+                const file = files[0];   
+                if (file.type.startsWith('image/')) {   
+                    const reader = new FileReader();   
+                    reader.onload = (event) => {   
+                        fabric.Image.fromURL(event.target.result, (img) => {   
+                            img.scaleToWidth(200);   
+                            // Center the dropped image   
+                            img.set({   
+                                left: (fabricCanvas.width - img.getScaledWidth()) / 2,   
+                                top: (fabricCanvas.height - img.getScaledHeight()) / 2   
+                            });   
+                            fabricCanvas.add(img);   
+                            fabricCanvas.setActiveObject(img);   
+                            updateTexture();   
+                        });   
+                    };   
+                    reader.readAsDataURL(file);   
+                }   
+            }   
+        });   
+     
+        // Panel Toggle     
+        const toolPanel = document.getElementById('tool-panel');     
+        document.getElementById('toggle-panel').addEventListener('click', () => {     
+            toolPanel.classList.toggle('collapsed');     
+            const icon = document.querySelector('#toggle-panel i');     
+            icon.classList.toggle('fa-minus');     
+            icon.classList.toggle('fa-plus');     
+        });     
+  
+        // Product Panel Logic  
+        const productPanel = document.getElementById('product-panel');  
+        document.getElementById('toggle-product-panel').addEventListener('click', () => {  
+            productPanel.classList.toggle('collapsed');  
+            const icon = document.querySelector('#toggle-product-panel i');  
+            icon.classList.toggle('fa-minus');  
+            icon.classList.toggle('fa-plus');  
+        });  
+  
+        // Drag Functionality  
+        function makeDraggable(element, handle) {  
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;  
+            handle.onmousedown = dragMouseDown;  
+  
+            function dragMouseDown(e) {  
+                e = e || window.event;  
+                e.preventDefault();  
+                pos3 = e.clientX;  
+                pos4 = e.clientY;  
+                  
+                // Switch to top/left positioning immediately  
+                element.style.top = element.offsetTop + "px";  
+                element.style.left = element.offsetLeft + "px";  
+                element.style.bottom = "auto";  
+                element.style.right = "auto";  
+  
+                document.onmouseup = closeDragElement;  
+                document.onmousemove = elementDrag;  
+            }  
+  
+            function elementDrag(e) {  
+                e = e || window.event;  
+                e.preventDefault();  
+                pos1 = pos3 - e.clientX;  
+                pos2 = pos4 - e.clientY;  
+                pos3 = e.clientX;  
+                pos4 = e.clientY;  
+                element.style.top = (element.offsetTop - pos2) + "px";  
+                element.style.left = (element.offsetLeft - pos1) + "px";  
+            }  
+  
+            function closeDragElement() {  
+                document.onmouseup = null;  
+                document.onmousemove = null;  
+            }  
+        }  
+  
+        makeDraggable(document.getElementById('product-panel'), document.getElementById('product-panel-header'));  
+        makeDraggable(document.getElementById('tool-panel'), document.querySelector('#tool-panel .tool-header'));  
+        makeDraggable(document.getElementById('shapes-panel'), document.getElementById('shapes-panel-header'));  
+        makeDraggable(document.getElementById('bag-panel'), document.getElementById('bag-panel-header'));
+
+        // Bag Panel Logic
+        const bagPanel = document.getElementById('bag-panel');
+        document.getElementById('toggle-bag-panel').addEventListener('click', () => {
+            bagPanel.classList.toggle('collapsed');
+            const icon = document.querySelector('#toggle-bag-panel i');
+            icon.classList.toggle('fa-minus');
+            icon.classList.toggle('fa-plus');
+        });
+  
+        // Shapes Panel Logic  
+        const shapesPanel = document.getElementById('shapes-panel');  
+        document.getElementById('toggle-shapes-panel').addEventListener('click', () => {  
+            shapesPanel.classList.toggle('collapsed');  
+            const icon = document.querySelector('#toggle-shapes-panel i');  
+            icon.classList.toggle('fa-minus');  
+            icon.classList.toggle('fa-plus');  
+        });  
+  
+        const shapeColorInput = document.getElementById('shape-color');  
+        const shapeOpacityInput = document.getElementById('shape-opacity');  
+  
+        function addShape(type) {  
+            let shape;  
+            const color = shapeColorInput.value;  
+            const opacity = parseFloat(shapeOpacityInput.value);  
+            const options = {  
+                left: 100,  
+                top: 100,  
+                fill: color,  
+                opacity: opacity,  
+                width: 100,  
+                height: 100  
+            };  
+  
+            if (type === 'rect') {  
+                shape = new fabric.Rect(options);  
+            } else if (type === 'circle') {  
+                shape = new fabric.Circle({ ...options, radius: 50 });  
+            } else if (type === 'triangle') {  
+                shape = new fabric.Triangle(options);  
+            }  
+  
+            if (shape) {  
+                fabricCanvas.add(shape);  
+                fabricCanvas.sendToBack(shape); 
+                fabricCanvas.setActiveObject(shape);  
+                updateTexture();  
+            }  
+        }  
+  
+        document.getElementById('add-rect').addEventListener('click', () => addShape('rect'));  
+        document.getElementById('add-circle').addEventListener('click', () => addShape('circle'));  
+        document.getElementById('add-triangle').addEventListener('click', () => addShape('triangle'));  
+  
+        shapeColorInput.addEventListener('input', (e) => {  
+            const activeObject = fabricCanvas.getActiveObject();  
+            if (activeObject) {  
+                if (activeObject.set) {  
+                    activeObject.set('fill', e.target.value);  
+                    fabricCanvas.renderAll();  
+                    updateTexture();  
+                }  
+            }  
+        });  
+  
+        shapeOpacityInput.addEventListener('input', (e) => {  
+            const activeObject = fabricCanvas.getActiveObject();  
+            if (activeObject) {  
+                activeObject.set('opacity', parseFloat(e.target.value));  
+                fabricCanvas.renderAll();  
+                updateTexture(); // updateTexture will force opacity 1 for the 3D model  
+            }  
+        });  
+  
+        // Update color/opacity picker when object is selected  
+        fabricCanvas.on('selection:created', updateShapeConfig);  
+        fabricCanvas.on('selection:updated', updateShapeConfig);  
+  
+        function updateShapeConfig(e) {  
+            const activeObject = e.selected ? e.selected[0] : fabricCanvas.getActiveObject();  
+            if (activeObject) {  
+                if (activeObject.fill && typeof activeObject.fill === 'string') {  
+                    shapeColorInput.value = activeObject.fill;  
+                }  
+                if (activeObject.opacity !== undefined) {  
+                    shapeOpacityInput.value = activeObject.opacity;  
+                }  
+            }  
+        }  
+  
+        // Delete functionality  
+        window.addEventListener('keydown', (e) => {  
+            if (e.key === 'Delete' || e.key === 'Backspace') {  
+                const activeObject = fabricCanvas.getActiveObject();  
+                if (activeObject && !activeObject.isEditing) {  
+                    fabricCanvas.remove(activeObject);  
+                    fabricCanvas.discardActiveObject();  
+                    fabricCanvas.renderAll();  
+                    updateTexture();  
+                }  
+            }  
+        });  
+  
+        // Logo Logic  
+        function makeResizable(element, handle) {  
+            handle.addEventListener('mousedown', initResize, false);  
+  
+            function initResize(e) {  
+                e.preventDefault();  
+                e.stopPropagation(); // Prevent drag from starting  
+                window.addEventListener('mousemove', resize, false);  
+                window.addEventListener('mouseup', stopResize, false);  
+            }  
+  
+            function resize(e) {  
+                const newWidth = e.clientX - element.offsetLeft;  
+                if (newWidth > 50) { // Minimum width  
+                    element.style.width = newWidth + 'px';  
+                }  
+            }  
+  
+            function stopResize(e) {  
+                window.removeEventListener('mousemove', resize, false);  
+                window.removeEventListener('mouseup', stopResize, false);  
+            }  
+        }  
+  
+        const logoOverlay = document.getElementById('logo-overlay');  
+        const logoImg = document.getElementById('logo-img');  
+        const logoHandle = document.getElementById('logo-resize-handle');  
+  
+        makeDraggable(logoOverlay, logoImg);  
+        makeResizable(logoOverlay, logoHandle);  
+    </script>     
+</body>     
+</html>
