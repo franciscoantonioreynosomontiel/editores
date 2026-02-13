@@ -212,9 +212,97 @@ input[type="color"] {
     font-size: 24px;
     margin-bottom: 8px;
 }
+
+        /* Product Panel Styles */
+        #product-panel {
+            left: auto;
+            right: 20px;
+            background-color: #efefef;
+        }
+        .product-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            padding: 5px;
+        }
+        .neumorphic-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100px;
+            height: 100px;
+            background: #efefef;
+            border-radius: 12px;
+            box-shadow:  6px 6px 12px #c5c5c5,
+                         -6px -6px 12px #ffffff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #555;
+            margin: auto;
+        }
+        .neumorphic-btn:active {
+            box-shadow: inset 6px 6px 12px #c5c5c5,
+                        inset -6px -6px 12px #ffffff;
+        }
+        .neumorphic-btn i {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: #ff8c00;
+        }
+        .neumorphic-btn span {
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .neumorphic-btn a {
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Logo Overlay Styles */
+        #logo-overlay {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 150px;
+            z-index: 2000;
+            line-height: 0;
+        }
+        #logo-img {
+            width: 100%;
+            height: auto;
+            display: block;
+            cursor: move;
+            pointer-events: auto;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+        #logo-resize-handle {
+            width: 12px;
+            height: 12px;
+            background-color: #ff8c00;
+            border-radius: 50%;
+            position: absolute;
+            bottom: -6px;
+            right: -6px;
+            cursor: se-resize;
+            z-index: 2001;
+        }
     </style>
 </head>
 <body>
+    <div id="logo-overlay">
+        <img src="https://menutech.services/assets/img/logomt.png" id="logo-img" alt="Logo" draggable="false">
+        <div id="logo-resize-handle"></div>
+    </div>
+
     <div id="tool-panel" class="tool-panel">
         <div class="tool-header">
             <h3><i class="fas fa-tools"></i> Tool Panel</h3>
@@ -260,6 +348,64 @@ input[type="color"] {
             </div>
         </div>
     </div>
+
+    <div id="product-panel" class="tool-panel">
+        <div class="tool-header" id="product-panel-header">
+            <h3><i class="fas fa-box-open"></i> Products</h3>
+            <button id="toggle-product-panel"><i class="fas fa-minus"></i></button>
+        </div>
+        <div class="tool-content product-grid">
+            <div class="neumorphic-btn">
+                <a href="index.html">
+                    <i class="fas fa-shirt"></i>
+                    <span>Shirt</span>
+                </a>
+            </div>
+            <div class="neumorphic-btn">
+                <a href="#">
+                    <i class="fas fa-image"></i>
+                    <span>Poster</span>
+                </a>
+            </div>
+            <div class="neumorphic-btn">
+                <a href="sticker.html">
+                    <i class="fas fa-note-sticky"></i>
+                    <span>Stickers</span>
+                </a>
+            </div>
+            <div class="neumorphic-btn">
+                <a href="#">
+                    <i class="fas fa-vest"></i>
+                    <span>Hoodies</span>
+                </a>
+            </div>
+            <div class="neumorphic-btn">
+                <a href="flag.html">
+                    <i class="fas fa-flag"></i>
+                    <span>Flag</span>
+                </a>
+            </div>
+            <div class="neumorphic-btn">
+                <a href="banner.html">
+                    <i class="fas fa-scroll"></i>
+                    <span>Banner</span>
+                </a>
+            </div>
+            <div class="neumorphic-btn">
+                <a href="xbanner.html">
+                    <i class="fas fa-ad"></i>
+                    <span>X-banner</span>
+                </a>
+            </div>
+            <div class="neumorphic-btn">
+                <a href="#">
+                    <i class="fas fa-paper-plane"></i>
+                    <span>Flyers</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
     <div id="main-container">
         <div id="canvas-flex-container"> <!-- Renamed from #canvas-container -->
             <div id="canvas-wrapper"> <!-- New wrapper -->
@@ -539,6 +685,7 @@ input[type="color"] {
             document.body.removeChild(link);
         });
 
+        // Original Tool Panel Logic
         const toolPanel = document.getElementById('tool-panel');
         const toolHeader = toolPanel.querySelector('.tool-header');
         const toggleButton = document.getElementById('toggle-panel');
@@ -576,6 +723,86 @@ input[type="color"] {
             icon.classList.toggle('fa-minus');
             icon.classList.toggle('fa-plus');
         });
+
+        // Product Panel Logic
+        const productPanel = document.getElementById('product-panel');
+        document.getElementById('toggle-product-panel').addEventListener('click', () => {
+            productPanel.classList.toggle('collapsed');
+            const icon = document.querySelector('#toggle-product-panel i');
+            icon.classList.toggle('fa-minus');
+            icon.classList.toggle('fa-plus');
+        });
+
+        // Drag Functionality
+        function makeDraggable(element, handle) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            handle.onmousedown = dragMouseDown;
+
+            function dragMouseDown(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+
+                // Switch to top/left positioning immediately
+                element.style.top = element.offsetTop + "px";
+                element.style.left = element.offsetLeft + "px";
+                element.style.bottom = "auto";
+                element.style.right = "auto";
+
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+            }
+
+            function elementDrag(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                element.style.top = (element.offsetTop - pos2) + "px";
+                element.style.left = (element.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
+
+        makeDraggable(document.getElementById('product-panel'), document.getElementById('product-panel-header'));
+
+        // Logo Logic
+        function makeResizable(element, handle) {
+            handle.addEventListener('mousedown', initResize, false);
+
+            function initResize(e) {
+                e.preventDefault();
+                e.stopPropagation(); // Prevent drag from starting
+                window.addEventListener('mousemove', resize, false);
+                window.addEventListener('mouseup', stopResize, false);
+            }
+
+            function resize(e) {
+                const newWidth = e.clientX - element.offsetLeft;
+                if (newWidth > 50) { // Minimum width
+                    element.style.width = newWidth + 'px';
+                }
+            }
+
+            function stopResize(e) {
+                window.removeEventListener('mousemove', resize, false);
+                window.removeEventListener('mouseup', stopResize, false);
+            }
+        }
+
+        const logoOverlay = document.getElementById('logo-overlay');
+        const logoImg = document.getElementById('logo-img');
+        const logoHandle = document.getElementById('logo-resize-handle');
+
+        makeDraggable(logoOverlay, logoImg);
+        makeResizable(logoOverlay, logoHandle);
     </script>
 </body>
 </html>
