@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card OCR Optimizer</title>
+    <link rel="icon" href="data:;">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+        body, html {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        #main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2rem;
+            color: #2c3e50;
+        }
+        .header p {
+            color: #7f8c8d;
+            margin-top: 8px;
+        }
+        #drop-zone {
+            width: 100%;
+            max-width: 600px;
+            height: 150px;
+            border: 2px dashed #3498db;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #fff;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        #drop-zone.dragover {
+            border-color: #2ecc71;
+            background-color: #e8f8f5;
+        }
+        #drop-zone i {
+            font-size: 2.5rem;
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+        #progress-container {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #dcdde1;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background-color: #3498db;
+            transition: width 0.2s ease;
+        }
+        #progress-status {
+            text-align: center;
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+        #results-container {
+            width: 100%;
+            max-width: 1000px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            display: none;
+        }
+        .card-view {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .region-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        @media (max-width: 768px) {
+            .region-grid { grid-template-columns: 1fr; }
+        }
+        .region-item {
+            border: 1px solid #eee;
+            padding: 10px;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .region-item h4 {
+            margin: 0 0 10px 0;
+            font-size: 0.9rem;
+            color: #34495e;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        canvas {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            background: #000;
+        }
+        .output-data {
+            margin-top: 20px;
+            padding: 15px;
+            background: #2c3e50;
+            color: #ecf0f1;
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .output-data p { margin: 5px 0; }
+        .output-label { color: #3498db; font-weight: bold; }
+        .btn-home {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 15px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            color: #3498db;
+            text-decoration: none;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="btn-home"><i class="fas fa-home"></i></a>
+
+    <div id="main-container">
+        <div class="header">
+            <h1>Card Optimizer OCR</h1>
+            <p>Optimized pipeline for Name and Code extraction</p>
+        </div>
+
+        <div id="drop-zone">
+            <i class="fas fa-id-card"></i>
+            <p>Drop card image here</p>
+            <input type="file" id="file-input" accept="image/*" style="display: none;">
+        </div>
+
+        <div id="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <p id="progress-status">Initializing...</p>
+        </div>
+
+        <div id="results-container">
+            <div class="card-view">
+                <h3><i class="fas fa-microscope"></i> Processed Regions</h3>
+                <div class="region-grid">
+                    <div class="region-item">
+                        <h4>Name Region</h4>
+                        <canvas id="canvas-name"></canvas>
+                    </div>
+                    <div class="region-item">
+                        <h4>Code Region</h4>
+                        <canvas id="canvas-code"></canvas>
+                    </div>
+                </div>
+
+                <div class="output-data">
+                    <p><span class="output-label">NOMBRE:</span> <span id="res-name">---</span></p>
+                    <p><span class="output-label">CÓDIGO:</span> <span id="res-code">---</span></p>
+                </div>
+
+                <button onclick="location.reload()" style="margin-top: 15px; padding: 10px 20px; border-radius: 5px; border: none; background: #3498db; color: white; cursor: pointer;">
+                    <i class="fas fa-redo"></i> New Scan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script>
+        // Constants for coordinates (discovered from mask)
+        const MASK_SIZE = { w: 348, h: 508 };
+        const ZONAS_ORIGINAL = {
+            nombre: { x: 30, y: 30, w: 248, h: 38 },
+            codigo: { x: 238, y: 370, w: 71, h: 13 }
+        };
+
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const progressContainer = document.getElementById('progress-container');
+        const progressFill = document.getElementById('progress-fill');
+        const progressStatus = document.getElementById('progress-status');
+        const resultsContainer = document.getElementById('results-container');
+
+        dropZone.onclick = () => fileInput.click();
+
+        dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('dragover'); };
+        dropZone.ondragleave = () => dropZone.classList.remove('dragover');
+        dropZone.ondrop = (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+        };
+
+        fileInput.onchange = (e) => {
+            if (e.target.files.length) handleFile(e.target.files[0]);
+        };
+
+        function handleFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => startPipeline(img);
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function startPipeline(img) {
+            dropZone.style.display = 'none';
+            progressContainer.style.display = 'block';
+            resultsContainer.style.display = 'none';
+
+            updateProgress('Scaling image...', 10);
+
+            // 1. Escalar imagen completa x2
+            const scaleFactor = 2;
+            const scaledCanvas = document.createElement('canvas');
+            scaledCanvas.width = img.width * scaleFactor;
+            scaledCanvas.height = img.height * scaleFactor;
+            const sCtx = scaledCanvas.getContext('2d');
+            sCtx.imageSmoothingEnabled = true;
+            sCtx.drawImage(img, 0, 0, scaledCanvas.width, scaledCanvas.height);
+
+            // 2. Ajustar coordenadas de recorte (proporcionales al tamaño real)
+            const ratioX = img.width / MASK_SIZE.w;
+            const ratioY = img.height / MASK_SIZE.h;
+
+            const getZonas = (mult) => ({
+                nombre: {
+                    x: ZONAS_ORIGINAL.nombre.x * ratioX * mult,
+                    y: ZONAS_ORIGINAL.nombre.y * ratioY * mult,
+                    w: ZONAS_ORIGINAL.nombre.w * ratioX * mult,
+                    h: ZONAS_ORIGINAL.nombre.h * ratioY * mult
+                },
+                codigo: {
+                    x: ZONAS_ORIGINAL.codigo.x * ratioX * mult,
+                    y: ZONAS_ORIGINAL.codigo.y * ratioY * mult,
+                    w: ZONAS_ORIGINAL.codigo.w * ratioX * mult,
+                    h: ZONAS_ORIGINAL.codigo.h * ratioY * mult
+                }
+            });
+
+            const zonasScaled = getZonas(scaleFactor);
+
+            // 3. Recortar y 4. Procesar por región
+            updateProgress('Processing Name region...', 30);
+            const canvasName = document.getElementById('canvas-name');
+            processRegion(scaledCanvas, zonasScaled.nombre, canvasName, { contrast: 70, threshold: 150 });
+
+            updateProgress('Processing Code region...', 50);
+            const canvasCode = document.getElementById('canvas-code');
+            // Región CÓDIGO extra scale x2
+            processRegion(scaledCanvas, zonasScaled.codigo, canvasCode, { contrast: 110, threshold: 140, extraScale: 2 });
+
+            // 5. OCR
+            updateProgress('OCR: Name...', 60);
+            const nameResult = await performOCR(canvasName, { psm: 6 });
+            document.getElementById('res-name').innerText = nameResult.text.trim();
+
+            updateProgress('OCR: Code...', 80);
+            let codeResult = await performOCR(canvasCode, {
+                psm: 7,
+                whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-/"
+            });
+
+            // Re-intento si confianza < 70
+            if (codeResult.confidence < 70) {
+                updateProgress('OCR: Code (Retry with different threshold)...', 85);
+                processRegion(scaledCanvas, zonasScaled.codigo, canvasCode, { contrast: 120, threshold: 130, extraScale: 2 });
+                codeResult = await performOCR(canvasCode, {
+                    psm: 7,
+                    whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-/"
+                });
+            }
+            document.getElementById('res-code').innerText = codeResult.text.trim();
+
+            updateProgress('Done!', 100);
+            progressContainer.style.display = 'none';
+            resultsContainer.style.display = 'block';
+        }
+
+        function processRegion(sourceCanvas, box, targetCanvas, options) {
+            let { x, y, w, h } = box;
+            const extraScale = options.extraScale || 1;
+
+            targetCanvas.width = w * extraScale;
+            targetCanvas.height = h * extraScale;
+            const ctx = targetCanvas.getContext('2d');
+            ctx.imageSmoothingEnabled = true;
+            ctx.drawImage(sourceCanvas, x, y, w, h, 0, 0, targetCanvas.width, targetCanvas.height);
+
+            const imageData = ctx.getImageData(0, 0, targetCanvas.width, targetCanvas.height);
+            const data = imageData.data;
+
+            // Grayscale, Contrast, Threshold
+            const contrastFactor = (259 * (options.contrast + 255)) / (255 * (259 - options.contrast));
+
+            for (let i = 0; i < data.length; i += 4) {
+                // Grayscale: 0.299R + 0.587G + 0.114B
+                let gray = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
+
+                // Contrast
+                gray = contrastFactor * (gray - 128) + 128;
+
+                // Threshold
+                const final = gray > options.threshold ? 255 : 0;
+
+                data[i] = data[i+1] = data[i+2] = final;
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+        }
+
+        async function performOCR(canvas, config) {
+            const worker = await Tesseract.createWorker('eng');
+
+            const params = {
+                tessedit_pageseg_mode: config.psm
+            };
+            if (config.whitelist) {
+                params.tessedit_char_whitelist = config.whitelist;
+            }
+
+            await worker.setParameters(params);
+            const { data } = await worker.recognize(canvas);
+
+            // Filtrar por confianza
+            const filteredWords = data.words.filter(w => w.confidence >= 65);
+            const filteredText = filteredWords.map(w => w.text).join(' ');
+
+            const result = {
+                text: filteredText || data.text,
+                confidence: data.confidence
+            };
+
+            await worker.terminate();
+            return result;
+        }
+
+        function updateProgress(status, percent) {
+            progressStatus.innerText = status;
+            progressFill.style.width = percent + '%';
+        }
+    </script>
+</body>
+</html>
