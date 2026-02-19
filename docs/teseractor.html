@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teseractor OCR</title>
+    <link rel="icon" href="data:;">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+        body, html {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        #main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #ff8c00;
+        }
+        .header p {
+            color: #666;
+            margin-top: 10px;
+        }
+        #drop-zone {
+            width: 100%;
+            max-width: 800px;
+            height: 200px;
+            border: 3px dashed #ddd;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #fff;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        #drop-zone.dragover {
+            border-color: #ff8c00;
+            background-color: #fff9f0;
+            transform: scale(1.02);
+        }
+        #drop-zone i {
+            font-size: 3rem;
+            color: #ff8c00;
+            margin-bottom: 15px;
+        }
+        #drop-zone p {
+            font-size: 1.2rem;
+            color: #555;
+            margin: 0;
+        }
+        #progress-container {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 30px;
+            display: none;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #eee;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background-color: #ff8c00;
+            transition: width 0.2s ease;
+        }
+        #progress-status {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        #results-container {
+            width: 100%;
+            max-width: 1200px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            display: none;
+        }
+        @media (max-width: 900px) {
+            #results-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        .result-box {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .result-box h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            color: #444;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        #canvas-wrapper {
+            position: relative;
+            width: 100%;
+            overflow: auto;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        #output-canvas {
+            display: block;
+            margin: 0 auto;
+        }
+        #text-output {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            resize: none;
+            box-sizing: border-box;
+            background-color: #f9f9f9;
+        }
+        .actions {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+        }
+        .btn {
+            padding: 12px 25px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .btn-primary {
+            background-color: #ff8c00;
+            color: white;
+            box-shadow: 0 4px 6px rgba(255,140,0,0.3);
+        }
+        .btn-primary:hover {
+            background-color: #e67e00;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background-color: #efefef;
+            color: #555;
+            box-shadow: 6px 6px 12px #c5c5c5, -6px -6px 12px #ffffff;
+        }
+        .btn-secondary:hover {
+            background-color: #e5e5e5;
+        }
+        #product-panel-link {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" id="product-panel-link" class="btn btn-secondary">
+        <i class="fas fa-home"></i>
+        <span>Home</span>
+    </a>
+
+    <div id="main-container">
+        <div class="header">
+            <h1>Teseractor OCR</h1>
+            <p>Drag and drop an image to extract text and positions</p>
+        </div>
+
+        <div class="tool-section" style="margin-bottom: 20px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 15px;">
+            <label for="lang-select" style="font-weight: bold; color: #555;"><i class="fas fa-language"></i> Language:</label>
+            <select id="lang-select" style="padding: 8px; border-radius: 8px; border: 1px solid #ddd; outline: none; cursor: pointer;">
+                <option value="spa">Spanish (Español)</option>
+                <option value="eng">English</option>
+                <option value="spa+eng">Both (Ambos)</option>
+            </select>
+        </div>
+
+        <div id="drop-zone">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p>Drop your image here or click to upload</p>
+            <input type="file" id="file-input" accept="image/*" style="display: none;">
+        </div>
+
+        <div id="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <p id="progress-status">Initializing Tesseract...</p>
+        </div>
+
+        <div id="results-container">
+            <div class="result-box">
+                <h3><i class="fas fa-image"></i> Visualizer</h3>
+                <div id="canvas-wrapper">
+                    <canvas id="output-canvas"></canvas>
+                </div>
+            </div>
+            <div class="result-box">
+                <h3>
+                    <span><i class="fas fa-file-alt"></i> Extracted Text</span>
+                    <button id="download-btn" class="btn btn-primary" style="padding: 5px 15px; font-size: 0.8rem;">
+                        <i class="fas fa-download"></i> Download .txt
+                    </button>
+                </h3>
+                <textarea id="text-output" readonly placeholder="OCR results will appear here..."></textarea>
+            </div>
+        </div>
+
+        <div class="actions" id="reset-actions" style="display: none;">
+            <button onclick="location.reload()" class="btn btn-secondary">
+                <i class="fas fa-redo"></i> Process another image
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const langSelect = document.getElementById('lang-select');
+        const progressContainer = document.getElementById('progress-container');
+        const progressFill = document.getElementById('progress-fill');
+        const progressStatus = document.getElementById('progress-status');
+        const resultsContainer = document.getElementById('results-container');
+        const outputCanvas = document.getElementById('output-canvas');
+        const textOutput = document.getElementById('text-output');
+        const downloadBtn = document.getElementById('download-btn');
+        const resetActions = document.getElementById('reset-actions');
+
+        let extractedData = null;
+
+        // Trigger file input on click
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        // Drag and Drop events
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Please upload an image file.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => processImage(img);
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function processImage(img) {
+            // Setup UI
+            dropZone.style.display = 'none';
+            progressContainer.style.display = 'block';
+            resultsContainer.style.display = 'none';
+            resetActions.style.display = 'none';
+
+            // OCR
+            try {
+                const lang = langSelect.value;
+                const worker = await Tesseract.createWorker(lang, 1, {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            progressFill.style.width = `${m.progress * 100}%`;
+                            progressStatus.innerText = `Recognizing: ${Math.round(m.progress * 100)}%`;
+                        } else {
+                            progressStatus.innerText = m.status;
+                        }
+                    }
+                });
+
+                const ret = await worker.recognize(img);
+                extractedData = ret.data;
+                await worker.terminate();
+
+                displayResults(img, extractedData);
+            } catch (error) {
+                console.error(error);
+                alert('An error occurred during OCR processing.');
+                progressStatus.innerText = 'Error processing image.';
+            }
+        }
+
+        function displayResults(img, data) {
+            progressContainer.style.display = 'none';
+            resultsContainer.style.display = 'grid';
+            resetActions.style.display = 'flex';
+
+            // Draw image and bounding boxes
+            const ctx = outputCanvas.getContext('2d');
+            outputCanvas.width = img.width;
+            outputCanvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+
+            ctx.strokeStyle = '#ff8c00';
+            ctx.lineWidth = 2;
+            ctx.fillStyle = 'rgba(255, 140, 0, 0.2)';
+
+            let txtContent = '';
+
+            data.words.forEach(word => {
+                const { x0, y0, x1, y1 } = word.bbox;
+                ctx.strokeRect(x0, y0, x1 - x0, y1 - y0);
+                ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+
+                txtContent += `Text: ${word.text} | Position: [x0: ${x0}, y0: ${y0}, x1: ${x1}, y1: ${y1}]\n`;
+            });
+
+            textOutput.value = data.text + '\n\n--- Detailed Positions ---\n' + txtContent;
+        }
+
+        downloadBtn.addEventListener('click', () => {
+            if (!extractedData) return;
+
+            let txtContent = '--- OCR EXTRACTED TEXT ---\n\n';
+            txtContent += extractedData.text + '\n\n';
+            txtContent += '--- DETAILED POSITIONS ---\n';
+
+            extractedData.words.forEach(word => {
+                const { x0, y0, x1, y1 } = word.bbox;
+                txtContent += `Text: ${word.text} | Position: [x0: ${x0}, y0: ${y0}, x1: ${x1}, y1: ${y1}]\n`;
+            });
+
+            const blob = new Blob([txtContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'ocr_results.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+    </script>
+</body>
+</html>
