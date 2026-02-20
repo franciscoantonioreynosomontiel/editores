@@ -249,31 +249,31 @@
 
             updateProgress('Scaling image...', 10);
 
-            // 1. Escalar imagen completa x2
+            // 1. Escalar y ajustar imagen a las dimensiones de la máscara (x2)
             const scaleFactor = 2;
             const scaledCanvas = document.createElement('canvas');
-            scaledCanvas.width = img.width * scaleFactor;
-            scaledCanvas.height = img.height * scaleFactor;
+            // Forzamos el tamaño de la máscara para asegurar alineación exacta
+            scaledCanvas.width = MASK_SIZE.w * scaleFactor;
+            scaledCanvas.height = MASK_SIZE.h * scaleFactor;
+
             const sCtx = scaledCanvas.getContext('2d');
             sCtx.imageSmoothingEnabled = true;
+            // Dibujamos la imagen original estirándola/ajustándola al canvas de la máscara
             sCtx.drawImage(img, 0, 0, scaledCanvas.width, scaledCanvas.height);
 
-            // 2. Ajustar coordenadas de recorte (proporcionales al tamaño real)
-            const ratioX = img.width / MASK_SIZE.w;
-            const ratioY = img.height / MASK_SIZE.h;
-
+            // 2. Las coordenadas ahora son fijas respecto al canvas escalado
             const getZonas = (mult) => ({
                 nombre: {
-                    x: ZONAS_ORIGINAL.nombre.x * ratioX * mult,
-                    y: ZONAS_ORIGINAL.nombre.y * ratioY * mult,
-                    w: ZONAS_ORIGINAL.nombre.w * ratioX * mult,
-                    h: ZONAS_ORIGINAL.nombre.h * ratioY * mult
+                    x: ZONAS_ORIGINAL.nombre.x * mult,
+                    y: ZONAS_ORIGINAL.nombre.y * mult,
+                    w: ZONAS_ORIGINAL.nombre.w * mult,
+                    h: ZONAS_ORIGINAL.nombre.h * mult
                 },
                 codigo: {
-                    x: ZONAS_ORIGINAL.codigo.x * ratioX * mult,
-                    y: ZONAS_ORIGINAL.codigo.y * ratioY * mult,
-                    w: ZONAS_ORIGINAL.codigo.w * ratioX * mult,
-                    h: ZONAS_ORIGINAL.codigo.h * ratioY * mult
+                    x: ZONAS_ORIGINAL.codigo.x * mult,
+                    y: ZONAS_ORIGINAL.codigo.y * mult,
+                    w: ZONAS_ORIGINAL.codigo.w * mult,
+                    h: ZONAS_ORIGINAL.codigo.h * mult
                 }
             });
 
