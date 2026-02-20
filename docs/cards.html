@@ -160,7 +160,7 @@
     <div id="main-container">
         <div class="header">
             <h1>Card Optimizer OCR</h1>
-            <p>Optimized pipeline for Name and Code extraction</p>
+            <p>Optimized pipeline with mask alignment</p>
         </div>
 
         <div id="drop-zone">
@@ -178,7 +178,7 @@
 
         <div id="results-container">
             <div class="card-view">
-                <h3><i class="fas fa-microscope"></i> Processed Regions</h3>
+                <h3><i class="fas fa-microscope"></i> Processed Regions (Thresholded)</h3>
                 <div class="region-grid">
                     <div class="region-item">
                         <h4>Name Region</h4>
@@ -204,12 +204,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script>
-        // Constants for coordinates (discovered from mask)
-        const MASK_SIZE = { w: 348, h: 508 };
-        const ZONAS_ORIGINAL = {
-            nombre: { x: 30, y: 30, w: 248, h: 38 },
-            codigo: { x: 238, y: 370, w: 71, h: 13 }
-        };
+        let ZONAS = null;
+        let MASK_SIZE = null;
 
         const dropZone = document.getElementById('drop-zone');
         const fileInput = document.getElementById('file-input');
@@ -218,8 +214,60 @@
         const progressStatus = document.getElementById('progress-status');
         const resultsContainer = document.getElementById('results-container');
 
-        dropZone.onclick = () => fileInput.click();
+        // Pre-load mask to find regions
+        async function initMask() {
+            try {
+                const img = new Image();
+                img.src = 'CardYugiohMask.png';
+                await new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = () => reject(new Error('Could not load mask image'));
+                });
 
+                MASK_SIZE = { w: img.width, h: img.height };
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+                const white = [];
+                for (let i = 0; i < data.length; i += 4) {
+                    if (data[i] > 128) { // White/Transparent white check
+                        white.push({ x: (i/4) % canvas.width, y: Math.floor((i/4) / canvas.width) });
+                    }
+                }
+
+                const top = white.filter(p => p.y < MASK_SIZE.h / 2);
+                const bot = white.filter(p => p.y >= MASK_SIZE.h / 2);
+
+                const getBounds = (pts) => {
+                    if (!pts.length) return null;
+                    let xmin = pts[0].x, xmax = pts[0].x, ymin = pts[0].y, ymax = pts[0].y;
+                    for (const p of pts) {
+                        xmin = Math.min(xmin, p.x); xmax = Math.max(xmax, p.x);
+                        ymin = Math.min(ymin, p.y); ymax = Math.max(ymax, p.y);
+                    }
+                    return { x: xmin, y: ymin, w: xmax-xmin+1, h: ymax-ymin+1 };
+                };
+
+                ZONAS = { nombre: getBounds(top), codigo: getBounds(bot) };
+                console.log('Mask analysis complete:', ZONAS);
+            } catch (e) {
+                console.error(e);
+                alert('Error loading CardYugiohMask.png. Using defaults.');
+                MASK_SIZE = { w: 348, h: 508 };
+                ZONAS = {
+                    nombre: { x: 30, y: 30, w: 248, h: 38 },
+                    codigo: { x: 238, y: 370, w: 71, h: 13 }
+                };
+            }
+        }
+
+        initMask();
+
+        dropZone.onclick = () => fileInput.click();
         dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('dragover'); };
         dropZone.ondragleave = () => dropZone.classList.remove('dragover');
         dropZone.ondrop = (e) => {
@@ -243,51 +291,46 @@
         }
 
         async function startPipeline(img) {
+            if (!ZONAS) await initMask();
+
             dropZone.style.display = 'none';
             progressContainer.style.display = 'block';
             resultsContainer.style.display = 'none';
 
-            updateProgress('Scaling image...', 10);
+            updateProgress('Scaling image to mask dimensions...', 10);
 
             // 1. Escalar y ajustar imagen a las dimensiones de la máscara (x2)
             const scaleFactor = 2;
             const scaledCanvas = document.createElement('canvas');
-            // Forzamos el tamaño de la máscara para asegurar alineación exacta
             scaledCanvas.width = MASK_SIZE.w * scaleFactor;
             scaledCanvas.height = MASK_SIZE.h * scaleFactor;
-
             const sCtx = scaledCanvas.getContext('2d');
             sCtx.imageSmoothingEnabled = true;
-            // Dibujamos la imagen original estirándola/ajustándola al canvas de la máscara
             sCtx.drawImage(img, 0, 0, scaledCanvas.width, scaledCanvas.height);
 
-            // 2. Las coordenadas ahora son fijas respecto al canvas escalado
-            const getZonas = (mult) => ({
+            // 2. Coordenadas de recorte fijas escaladas
+            const zonasScaled = {
                 nombre: {
-                    x: ZONAS_ORIGINAL.nombre.x * mult,
-                    y: ZONAS_ORIGINAL.nombre.y * mult,
-                    w: ZONAS_ORIGINAL.nombre.w * mult,
-                    h: ZONAS_ORIGINAL.nombre.h * mult
+                    x: ZONAS.nombre.x * scaleFactor,
+                    y: ZONAS.nombre.y * scaleFactor,
+                    w: ZONAS.nombre.w * scaleFactor,
+                    h: ZONAS.nombre.h * scaleFactor
                 },
                 codigo: {
-                    x: ZONAS_ORIGINAL.codigo.x * mult,
-                    y: ZONAS_ORIGINAL.codigo.y * mult,
-                    w: ZONAS_ORIGINAL.codigo.w * mult,
-                    h: ZONAS_ORIGINAL.codigo.h * mult
+                    x: ZONAS.codigo.x * scaleFactor,
+                    y: ZONAS.codigo.y * scaleFactor,
+                    w: ZONAS.codigo.w * scaleFactor,
+                    h: ZONAS.codigo.h * scaleFactor
                 }
-            });
+            };
 
-            const zonasScaled = getZonas(scaleFactor);
-
-            // 3. Recortar y 4. Procesar por región
-            updateProgress('Processing Name region...', 30);
+            // 3 & 4. Procesamiento
+            updateProgress('Processing regions...', 30);
             const canvasName = document.getElementById('canvas-name');
             processRegion(scaledCanvas, zonasScaled.nombre, canvasName, { contrast: 70, threshold: 150 });
 
-            updateProgress('Processing Code region...', 50);
             const canvasCode = document.getElementById('canvas-code');
-            // Región CÓDIGO extra scale x2
-            processRegion(scaledCanvas, zonasScaled.codigo, canvasCode, { contrast: 110, threshold: 140, extraScale: 2 });
+            processRegion(scaledCanvas, zonasScaled.codigo, canvasCode, { contrast: 110, threshold: 140, extraScale: 3 });
 
             // 5. OCR
             updateProgress('OCR: Name...', 60);
@@ -300,10 +343,9 @@
                 whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-/"
             });
 
-            // Re-intento si confianza < 70
             if (codeResult.confidence < 70) {
-                updateProgress('OCR: Code (Retry with different threshold)...', 85);
-                processRegion(scaledCanvas, zonasScaled.codigo, canvasCode, { contrast: 120, threshold: 130, extraScale: 2 });
+                updateProgress('OCR: Code retry...', 85);
+                processRegion(scaledCanvas, zonasScaled.codigo, canvasCode, { contrast: 120, threshold: 130, extraScale: 3 });
                 codeResult = await performOCR(canvasCode, {
                     psm: 7,
                     whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-/"
@@ -328,50 +370,31 @@
 
             const imageData = ctx.getImageData(0, 0, targetCanvas.width, targetCanvas.height);
             const data = imageData.data;
-
-            // Grayscale, Contrast, Threshold
-            const contrastFactor = (259 * (options.contrast + 255)) / (255 * (259 - options.contrast));
+            const factor = (259 * (options.contrast + 255)) / (255 * (259 - options.contrast));
 
             for (let i = 0; i < data.length; i += 4) {
-                // Grayscale: 0.299R + 0.587G + 0.114B
                 let gray = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
-
-                // Contrast
-                gray = contrastFactor * (gray - 128) + 128;
-
-                // Threshold
+                gray = factor * (gray - 128) + 128;
                 const final = gray > options.threshold ? 255 : 0;
-
                 data[i] = data[i+1] = data[i+2] = final;
             }
-
             ctx.putImageData(imageData, 0, 0);
         }
 
         async function performOCR(canvas, config) {
             const worker = await Tesseract.createWorker('eng');
-
-            const params = {
-                tessedit_pageseg_mode: config.psm
-            };
-            if (config.whitelist) {
-                params.tessedit_char_whitelist = config.whitelist;
-            }
-
-            await worker.setParameters(params);
+            await worker.setParameters({
+                tessedit_pageseg_mode: config.psm,
+                tessedit_char_whitelist: config.whitelist || ''
+            });
             const { data } = await worker.recognize(canvas);
-
-            // Filtrar por confianza
             const filteredWords = data.words.filter(w => w.confidence >= 65);
-            const filteredText = filteredWords.map(w => w.text).join(' ');
-
-            const result = {
-                text: filteredText || data.text,
+            const res = {
+                text: filteredWords.length ? filteredWords.map(w => w.text).join(' ') : data.text,
                 confidence: data.confidence
             };
-
             await worker.terminate();
-            return result;
+            return res;
         }
 
         function updateProgress(status, percent) {
