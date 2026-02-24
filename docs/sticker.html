@@ -110,7 +110,7 @@
         .tool-header i {     
             margin-right: 10px;     
         }     
-        #toggle-panel, #toggle-product-panel, #toggle-shapes-panel, #toggle-bag-panel {     
+        #toggle-panel, #toggle-product-panel, #toggle-shapes-panel, #toggle-bag-panel, #toggle-templates-panel {
             background: none;     
             border: none;     
             font-size: 20px;     
@@ -320,6 +320,46 @@
         #templates-panel {
             left: 920px;
         }
+        .templates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 15px;
+            padding: 5px;
+        }
+        .template-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .template-btn:hover {
+            transform: scale(1.05);
+        }
+        .template-shape {
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 5px;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .template-shape.blank {
+            border: 1px solid #333;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .template-shape img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .shape-circle {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+        }
     </style>     
 </head>     
 <body>     
@@ -467,9 +507,9 @@
         <div class="tool-content">
             <div class="tool-section">
                 <h4><i class="fas fa-th-large"></i> Select Template</h4>
-                <div class="product-grid" id="templates-grid">
-                    <div class="neumorphic-btn" id="template-blank">
-                        <i class="fas fa-eraser"></i>
+                <div class="templates-grid" id="templates-grid">
+                    <div class="template-btn" id="template-blank">
+                        <div class="template-shape shape-circle blank"></div>
                         <span>Blank</span>
                     </div>
                 </div>
