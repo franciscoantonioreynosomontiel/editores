@@ -173,7 +173,7 @@
         .tool-footer {    
             margin-top: auto;    
         }    
-        #generate-template {    
+        #generate-template, #generate-hq-template {
             width: 100%;    
             background-color: #ff8c00;    
             color: white;    
@@ -183,8 +183,12 @@
             display: flex;    
             justify-content: center;    
             align-items: center;    
+            margin-bottom: 10px;
         }    
-        #generate-template i {    
+        #generate-hq-template {
+            background-color: #28a745;
+        }
+        #generate-template i, #generate-hq-template i {
             margin-right: 8px;    
         }    
         .design-actions {    
@@ -402,6 +406,7 @@
                 </div>    
             </div>    
             <div class="tool-footer">    
+                <button id="generate-hq-template"><i class="fas fa-file-download"></i> Descargar Alta Calidad</button>
                 <button id="generate-template"><i class="fas fa-download"></i> Download Design</button>    
             </div>    
         </div>    
@@ -813,6 +818,38 @@
             link.download = 'xbanner-design.png';    
             link.click();    
         });    
+
+        document.getElementById('generate-hq-template').addEventListener('click', () => {
+            const activeObject = fabricCanvas.getActiveObject();
+            if (activeObject) {
+                activeObject.set({
+                    hasControls: false,
+                    hasBorders: false
+                });
+                fabricCanvas.renderAll();
+            }
+
+            const dataURL = fabricCanvas.toDataURL({
+                format: 'png',
+                quality: 1.0,
+                multiplier: 6
+            });
+
+            if (activeObject) {
+                activeObject.set({
+                    hasControls: true,
+                    hasBorders: true
+                });
+                fabricCanvas.renderAll();
+            }
+
+            const link = document.createElement('a');
+            link.href = dataURL;
+            link.download = 'xbanner-design-hq.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
   
         // Drag and Drop Implementation  
         const canvasWrapper = document.getElementById('canvas-wrapper');  
