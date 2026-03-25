@@ -1,0 +1,22 @@
+Guía Técnica para Impresión de Alta Calidad
+
+1. Formato de Archivo: PNG de Alta Resolución
+Hemos seleccionado el formato PNG con un multiplicador de resolución de 6x para las descargas de alta calidad.
+¿Por qué PNG?
+A diferencia de otros formatos, el PNG utiliza una compresión sin pérdida (lossless), lo que significa que cada píxel de su diseño se mantiene exactamente igual al original. Al exportarlo a una resolución tan alta (~3500px), el archivo contiene toda la información necesaria para que una imprenta profesional obtenga un resultado nítido y detallado.
+
+2. Parámetros Técnicos
+- Resolución: Aproximadamente 3480 x 3480 píxeles.
+- Densidad: Equivale a 300 DPI (puntos por pulgada) para impresiones de hasta 30cm (tamaño estándar para camisetas y posters medianos).
+- Calidad: 100% sin pérdida de información visual.
+
+3. Instrucciones para la Imprenta (CMYK y Color)
+- Espacio de Color: El archivo se descarga en formato RGB (estándar digital).
+- Recomendación: Al entregar este archivo a su imprenta, mencione que es un archivo de "Alta Resolución (300 DPI)". Las imprentas profesionales cuentan con software especializado para convertir este PNG de alta fidelidad al perfil de color CMYK específico de sus máquinas. Esto garantiza que los colores impresos sean lo más parecidos posible a los que ve en pantalla.
+
+4. Consejos por Producto
+- Camisetas y Ropa: El tamaño de 3500px es ideal para técnicas como DTF, DTG y Serigrafía digital.
+- Banners y Banderas: Aunque estos productos son grandes, el archivo de alta resolución permite una impresión clara a distancias de visualización normales.
+- Stickers: La densidad de píxeles es extrema para este tamaño, garantizando que hasta los textos más pequeños sean legibles.
+
+Nota: Asegúrese de que su diseño no toque los bordes extremos del customizador si desea tener un "margen de seguridad" para el corte o la costura del producto final.

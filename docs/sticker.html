@@ -186,9 +186,11 @@
             justify-content: center;     
             align-items: center;     
             margin-bottom: 10px;
+            transition: background-color 0.2s;
+            cursor: pointer;
         }     
-        #generate-hq-template {
-            background-color: #28a745;
+        #generate-template:hover, #generate-hq-template:hover {
+            background-color: #e67e00;
         }
         #generate-template i, #generate-hq-template i {
             margin-right: 8px;     
@@ -450,7 +452,7 @@
                 </div>     
             </div>
             <div class="tool-footer">     
-                <button id="generate-hq-template"><i class="fas fa-file-download"></i> Descargar Alta Calidad</button>
+                <button id="generate-hq-template">Descargar Alta Calidad</button>
                 <button id="generate-template"><i class="fas fa-download"></i> Download Design</button>     
             </div>     
         </div>     
