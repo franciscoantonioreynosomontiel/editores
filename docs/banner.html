@@ -287,43 +287,6 @@
             z-index: 2000; 
             line-height: 0; 
         } 
-
-        /* Font Styles Panel */
-        #font-panel {
-            top: 450px;
-            left: 20px;
-        }
-        #font-panel .tool-content {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .font-style-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            padding: 5px;
-        }
-        .font-style-btn {
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 10px;
-            cursor: pointer;
-            text-align: center;
-            font-size: 14px;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 50px;
-        }
-        .font-style-btn:hover {
-            background-color: #f0f0f0;
-            border-color: #ccc;
-        }
-        .font-style-btn span {
-            display: block;
-        }
         #logo-img {
             width: 100%;
             height: auto;
@@ -393,6 +356,43 @@
             width: 60px;
             height: 90px;
             border-radius: 4px;
+        }
+
+        /* Font Styles Panel */
+        #font-panel {
+            top: 450px;
+            left: 20px;
+        }
+        #font-panel .tool-content {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .font-style-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            padding: 5px;
+        }
+        .font-style-btn {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 14px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 50px;
+        }
+        .font-style-btn:hover {
+            background-color: #f0f0f0;
+            border-color: #ccc;
+        }
+        .font-style-btn span {
+            display: block;
         }
     </style>    
 </head>    
@@ -505,6 +505,7 @@
         </div> 
     </div> 
 
+
     <div id="font-panel" class="tool-panel">
         <div class="tool-header" id="font-panel-header">
             <h3><i class="fas fa-font"></i> Estilos PRO</h3>
@@ -523,7 +524,7 @@
                 </div>
                 <div class="tool-option">
                     <label>Curvatura</label>
-                    <input type="range" id="text-curved" min="0" max="100" step="5" value="0">
+                    <input type="range" id="text-curved" min="0" max="100" step="1" value="0">
                 </div>
             </div>
             <div class="tool-section">
@@ -542,7 +543,6 @@
             </div>
         </div>
     </div>
-
     <div id="templates-panel" class="tool-panel">
         <div class="tool-header" id="templates-panel-header">
             <h3><i class="fas fa-layer-group"></i> Templates</h3>
@@ -609,24 +609,13 @@
         </div>    
     </div>    
     
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>    
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>    
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>    
-    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"></script>
 
     <script>    
-        // Load Custom Fonts
-        WebFont.load({
-            google: {
-                families: ['Alfa Slab One', 'Bangers', 'Permanent Marker', 'Monoton', 'Creepster', 'Luckiest Guy', 'Playfair Display:700']
-            },
-            active: function() {
-                console.log("Fonts loaded");
-                if (typeof fabricCanvas !== 'undefined') fabricCanvas.renderAll();
-            }
-        });
-
         const modelCanvas = document.getElementById('model-canvas');    
         const textureCanvas = document.getElementById('texture-canvas');    
         const modelError = document.getElementById('model-error');    
@@ -869,12 +858,9 @@
                 left: 100, top: 100,    
                 fontFamily: fontFamilySelect.value,    
                 fontSize: parseInt(fontSizeInput.value),    
-                fill: '#ff8c00', // Default color changed to orange
-                stroke: 'transparent',
-                strokeWidth: 0
+                fill: '#ff8c00'
             });    
             fabricCanvas.add(text);    
-            fabricCanvas.setActiveObject(text);
             updateTexture();    
         });    
     
@@ -1046,55 +1032,19 @@
             } 
         } 
  
-        makeDraggable(document.getElementById('tool-panel'), document.querySelector('#tool-panel .tool-header'));
-        makeDraggable(document.getElementById('product-panel'), document.getElementById('product-panel-header')); 
-        makeDraggable(document.getElementById('shapes-panel'), document.getElementById('shapes-panel-header')); 
-        makeDraggable(document.getElementById('templates-panel'), document.getElementById('templates-panel-header'));
- 
-        // Templates Panel Logic
-        const templatesPanel = document.getElementById('templates-panel');
-        document.getElementById('toggle-templates-panel').addEventListener('click', () => {
-            templatesPanel.classList.toggle('collapsed');
-            const icon = document.querySelector('#toggle-templates-panel i');
-            icon.classList.toggle('fa-minus');
-            icon.classList.toggle('fa-plus');
+
+        // Load Custom Fonts
+        WebFont.load({
+            google: {
+                families: ['Alfa Slab One', 'Bangers', 'Permanent Marker', 'Monoton', 'Creepster', 'Luckiest Guy', 'Playfair Display:700']
+            },
+            active: function() {
+                if (typeof fabricCanvas !== 'undefined') fabricCanvas.renderAll();
+            }
         });
 
-        let currentTemplate = null;
-        function setTemplate(imageUrl) {
-            if (currentTemplate) {
-                fabricCanvas.remove(currentTemplate);
-                currentTemplate = null;
-            }
-            if (imageUrl) {
-                fabric.Image.fromURL(imageUrl, (img) => {
-                    img.set({
-                        originX: 'center',
-                        originY: 'center',
-                        left: fabricCanvas.width / 2,
-                        top: fabricCanvas.height / 2,
-                    });
-                    img.scaleToWidth(fabricCanvas.width);
-                    if (img.getScaledHeight() > fabricCanvas.height) {
-                        img.scaleToHeight(fabricCanvas.height);
-                    }
-                    fabricCanvas.add(img);
-                    fabricCanvas.sendToBack(img);
-                    currentTemplate = img;
-                    fabricCanvas.renderAll();
-                    updateTexture();
-                });
-            } else {
-                fabricCanvas.renderAll();
-                updateTexture();
-            }
-        }
-
-        document.getElementById('template-blank').addEventListener('click', () => setTemplate(null));
-
-        // Improved Font Styles Panel Logic
         (function() {
-            const styles = {
+            const fontStyles = {
                 graffiti: {
                     fontFamily: 'Bangers',
                     fill: '#ff0000',
@@ -1163,78 +1113,98 @@
                 }
             };
 
-            const panel = document.getElementById('font-panel');
-            const colorInp = document.getElementById('text-color');
-            const scaleInp = document.getElementById('text-scale');
-            const curvedInp = document.getElementById('text-curved');
-            const toggleBtn = document.getElementById('toggle-font-panel');
+            const fontPanel = document.getElementById('font-panel');
+            const textColorInput = document.getElementById('text-color');
+            const textScaleInput = document.getElementById('text-scale');
+            const textCurvedInput = document.getElementById('text-curved');
+            const toggleFontPanelBtn = document.getElementById('toggle-font-panel');
 
-            if (toggleBtn) {
-                toggleBtn.addEventListener('click', () => {
-                    panel.classList.toggle('collapsed');
-                    const icon = toggleBtn.querySelector('i');
+            if (toggleFontPanelBtn) {
+                toggleFontPanelBtn.addEventListener('click', () => {
+                    fontPanel.classList.toggle('collapsed');
+                    const icon = toggleFontPanelBtn.querySelector('i');
                     icon.classList.toggle('fa-minus');
                     icon.classList.toggle('fa-plus');
                 });
             }
 
-            makeDraggable(panel, document.getElementById('font-panel-header'));
+            makeDraggable(fontPanel, document.getElementById('font-panel-header'));
 
-            colorInp.addEventListener('input', (e) => {
-                const active = fabricCanvas.getActiveObject();
-                if (active && (active.type === 'i-text' || active.type === 'text')) {
-                    active.set('fill', e.target.value);
+            textColorInput.addEventListener('input', (e) => {
+                const activeObject = fabricCanvas.getActiveObject();
+                if (activeObject && (activeObject.type === 'i-text' || activeObject.type === 'text')) {
+                    activeObject.set('fill', e.target.value);
                     fabricCanvas.renderAll();
                     updateTexture();
                 }
             });
 
-            scaleInp.addEventListener('input', (e) => {
-                const active = fabricCanvas.getActiveObject();
-                if (active) {
-                    active.set({
+            textScaleInput.addEventListener('input', (e) => {
+                const activeObject = fabricCanvas.getActiveObject();
+                if (activeObject) {
+                    activeObject.set({
                         scaleX: parseFloat(e.target.value),
                         scaleY: parseFloat(e.target.value)
                     });
+                    activeObject.setCoords();
                     fabricCanvas.renderAll();
                     updateTexture();
                 }
             });
 
-            curvedInp.addEventListener('input', (e) => {
-                const active = fabricCanvas.getActiveObject();
-                if (active && (active.type === 'i-text' || active.type === 'text')) {
+            textCurvedInput.addEventListener('input', (e) => {
+                const activeObject = fabricCanvas.getActiveObject();
+                if (activeObject && (activeObject.type === 'i-text' || activeObject.type === 'text')) {
                     const val = parseInt(e.target.value);
                     if (val > 0) {
-                        const radius = 400 - (val * 2.5);
-                        const path = new fabric.Path(`M 0 0 a ${radius} ${radius} 0 1 1 ${radius*2} 0`, {
+                        const textWidth = activeObject.width;
+                        const arcHeight = val * 0.7;
+                        const path = new fabric.Path(`M 0 ${arcHeight} Q ${textWidth/2} 0 ${textWidth} ${arcHeight}`, {
                             fill: 'transparent',
                             stroke: 'transparent',
                             visible: false
                         });
-                        active.set({
+                        activeObject.set({
                             path: path,
-                            charSpacing: val * 3
+                            pathAlign: 'baseline',
+                            charSpacing: val * 1.5
                         });
                     } else {
-                        active.set({
+                        activeObject.set({
                             path: null,
                             charSpacing: 0
                         });
                     }
+                    activeObject.setCoords();
+                    fabricCanvas.renderAll();
+                    updateTexture();
+                }
+            });
+                        activeObject.set({
+                            path: path,
+                            pathAlign: 'baseline',
+                            charSpacing: val * 1.2
+                        });
+                    } else {
+                        activeObject.set({
+                            path: null,
+                            charSpacing: 0
+                        });
+                    }
+                    activeObject.setCoords();
                     fabricCanvas.renderAll();
                     updateTexture();
                 }
             });
 
-            document.querySelectorAll('#font-panel .font-style-btn').forEach(btn => {
+            document.querySelectorAll('.font-style-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const styleName = btn.getAttribute('data-style');
-                    const style = styles[styleName];
-                    let active = fabricCanvas.getActiveObject();
+                    const style = fontStyles[styleName];
+                    let activeObject = fabricCanvas.getActiveObject();
 
-                    if (!active || (active.type !== 'i-text' && active.type !== 'text')) {
-                        active = new fabric.IText('TEXT', {
+                    if (!activeObject || (activeObject.type !== 'i-text' && activeObject.type !== 'text')) {
+                        activeObject = new fabric.IText('TEXT', {
                             left: fabricCanvas.width / 2,
                             top: fabricCanvas.height / 2,
                             originX: 'center',
@@ -1242,33 +1212,103 @@
                             fontSize: 60,
                             textAlign: 'center'
                         });
-                        fabricCanvas.add(active);
-                        fabricCanvas.setActiveObject(active);
+                        fabricCanvas.add(activeObject);
+                        fabricCanvas.setActiveObject(activeObject);
                     }
 
-                    active.set(style);
+                    activeObject.set(style);
+                    activeObject.setCoords();
                     if (style.fill && style.fill !== 'transparent') {
-                        colorInp.value = style.fill;
+                        textColorInput.value = style.fill;
                     }
+                    activeObject.setCoords();
                     fabricCanvas.renderAll();
                     updateTexture();
                 });
             });
 
-            function sync() {
+            function syncFontPanel() {
                 const target = fabricCanvas.getActiveObject();
                 if (target && (target.type === 'i-text' || target.type === 'text')) {
                     if (target.fill && target.fill !== 'transparent' && typeof target.fill === 'string') {
-                        colorInp.value = target.fill;
+                        textColorInput.value = target.fill;
                     }
-                    scaleInp.value = target.scaleX;
-                    if (!target.path) curvedInp.value = 0;
+                    textScaleInput.value = target.scaleX;
+                    if (!target.path) {
+                        textCurvedInput.value = 0;
+                    }
                 }
             }
 
-            fabricCanvas.on('selection:created', sync);
-            fabricCanvas.on('selection:updated', sync);
+
+            fabricCanvas.on('text:changed', (e) => {
+                const obj = e.target;
+                if (obj && obj.path) {
+                    const val = parseInt(textCurvedInput.value);
+                    if (val > 0) {
+                        const textWidth = obj.width;
+                        const arcHeight = val * 0.7;
+                        const path = new fabric.Path(`M 0 ${arcHeight} Q ${textWidth/2} 0 ${textWidth} ${arcHeight}`, {
+                            fill: 'transparent',
+                            stroke: 'transparent',
+                            visible: false
+                        });
+                        obj.set({ path: path });
+                        obj.setCoords();
+                        fabricCanvas.renderAll();
+                        updateTexture();
+                    }
+                }
+            });
+
+            fabricCanvas.on('selection:created', syncFontPanel);
+            fabricCanvas.on('selection:updated', syncFontPanel);
         })();
+        makeDraggable(document.getElementById('product-panel'), document.getElementById('product-panel-header'));
+        makeDraggable(document.getElementById('tool-panel'), document.querySelector('#tool-panel .tool-header'));
+        makeDraggable(document.getElementById('shapes-panel'), document.getElementById('shapes-panel-header'));
+        makeDraggable(document.getElementById('templates-panel'), document.getElementById('templates-panel-header'));
+
+        // Templates Panel Logic
+        const templatesPanel = document.getElementById('templates-panel');
+        document.getElementById('toggle-templates-panel').addEventListener('click', () => {
+            templatesPanel.classList.toggle('collapsed');
+            const icon = document.querySelector('#toggle-templates-panel i');
+            icon.classList.toggle('fa-minus');
+            icon.classList.toggle('fa-plus');
+        });
+
+        let currentTemplate = null;
+        function setTemplate(imageUrl) {
+            if (currentTemplate) {
+                fabricCanvas.remove(currentTemplate);
+                currentTemplate = null;
+            }
+            if (imageUrl) {
+                fabric.Image.fromURL(imageUrl, (img) => {
+                    img.set({
+                        originX: 'center',
+                        originY: 'center',
+                        left: fabricCanvas.width / 2,
+                        top: fabricCanvas.height / 2,
+                    });
+                    img.scaleToWidth(fabricCanvas.width);
+                    if (img.getScaledHeight() > fabricCanvas.height) {
+                        img.scaleToHeight(fabricCanvas.height);
+                    }
+                    fabricCanvas.add(img);
+                    fabricCanvas.sendToBack(img);
+                    currentTemplate = img;
+                    fabricCanvas.renderAll();
+                    updateTexture();
+                });
+            } else {
+                fabricCanvas.renderAll();
+                updateTexture();
+            }
+        }
+
+        document.getElementById('template-blank').addEventListener('click', () => setTemplate(null));
 
         // Shapes Panel Logic 
         const shapesPanel = document.getElementById('shapes-panel'); 
