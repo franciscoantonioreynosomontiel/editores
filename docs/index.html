@@ -324,26 +324,6 @@ input[type="color"] {
             z-index: 2000;
             line-height: 0;
         }
-        #logo-img {
-            width: 100%;
-            height: auto;
-            display: block;
-            cursor: move;
-            pointer-events: auto;
-            user-select: none;
-            -webkit-user-drag: none;
-        }
-        #logo-resize-handle {
-            width: 12px;
-            height: 12px;
-            background-color: #ff8c00;
-            border-radius: 50%;
-            position: absolute;
-            bottom: -6px;
-            right: -6px;
-            cursor: se-resize;
-            z-index: 2001;
-        }
 
         /* Font Styles Panel */
         #font-panel {
@@ -378,6 +358,26 @@ input[type="color"] {
         }
         .font-style-btn span {
             display: block;
+        }
+        #logo-img {
+            width: 100%;
+            height: auto;
+            display: block;
+            cursor: move;
+            pointer-events: auto;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+        #logo-resize-handle {
+            width: 12px;
+            height: 12px;
+            background-color: #ff8c00;
+            border-radius: 50%;
+            position: absolute;
+            bottom: -6px;
+            right: -6px;
+            cursor: se-resize;
+            z-index: 2001;
         }
     </style>
 </head>
@@ -562,8 +562,7 @@ input[type="color"] {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.5.0/fabric.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"></script>
     <script>
         // Load Custom Fonts
         WebFont.load({
@@ -572,7 +571,7 @@ input[type="color"] {
             },
             active: function() {
                 console.log("Fonts loaded");
-                if (fabricCanvas) fabricCanvas.renderAll();
+                if (typeof fabricCanvas !== 'undefined') fabricCanvas.renderAll();
             }
         });
 
@@ -804,9 +803,7 @@ input[type="color"] {
         fabricCanvas.on('selection:cleared', () => {
             fontFamilySelect.value = 'Helvetica';
             fontSizeInput.value = 40;
-            fillColorInput.value = '#ff8c00';
-            textColorInput.value = "#ff8c00";
-            textScaleInput.value = 1;
+            fillColorInput.value = '#000000';
         });
 
         document.body.addEventListener('keydown', (e) => {
@@ -853,7 +850,6 @@ input[type="color"] {
                 fabricCanvas.renderAll();
             }
 
-            // Using multiplier: 6 to get ~3480px from 580px canvas (approx 300 DPI for ~11.6 inches)
             const dataURL = fabricCanvas.toDataURL({
                 format: 'png',
                 quality: 1.0,
@@ -868,21 +864,12 @@ input[type="color"] {
                 fabricCanvas.renderAll();
             }
 
-            // PDF Export for better print readiness
-            const { jsPDF } = window.jspdf;
-
-            // Create PDF with orientation based on aspect ratio
-            const width = fabricCanvas.width * 6;
-            const height = fabricCanvas.height * 6;
-            const orientation = width > height ? 'l' : 'p';
-            const pdf = new jsPDF({
-                orientation: orientation,
-                unit: 'px',
-                format: [width, height]
-            });
-
-            pdf.addImage(dataURL, 'PNG', 0, 0, width, height);
-            pdf.save('tshirt-design-ready-to-print.pdf');
+            const link = document.createElement('a');
+            link.href = dataURL;
+            link.download = 'tshirt-design-hq.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         });
 
         // Original Tool Panel Logic
@@ -1049,12 +1036,14 @@ input[type="color"] {
         const textCurvedInput = document.getElementById('text-curved');
         const toggleFontPanelBtn = document.getElementById('toggle-font-panel');
 
-        toggleFontPanelBtn.addEventListener('click', () => {
-            fontPanel.classList.toggle('collapsed');
-            const icon = toggleFontPanelBtn.querySelector('i');
-            icon.classList.toggle('fa-minus');
-            icon.classList.toggle('fa-plus');
-        });
+        if (toggleFontPanelBtn) {
+            toggleFontPanelBtn.addEventListener('click', () => {
+                fontPanel.classList.toggle('collapsed');
+                const icon = toggleFontPanelBtn.querySelector('i');
+                icon.classList.toggle('fa-minus');
+                icon.classList.toggle('fa-plus');
+            });
+        }
 
         makeDraggable(fontPanel, document.getElementById('font-panel-header'));
 
@@ -1084,8 +1073,6 @@ input[type="color"] {
             if (activeObject && (activeObject.type === 'i-text' || activeObject.type === 'text')) {
                 const value = parseInt(e.target.value);
                 if (value > 0) {
-                    // Create path for circular text
-                    // Path is a semi-circle or circle segment
                     const path = new fabric.Path(`M 0 0 a ${value} ${value} 0 1 1 ${value*2} 0`, {
                         fill: 'transparent',
                         stroke: 'transparent',
@@ -1107,7 +1094,6 @@ input[type="color"] {
                 let activeObject = fabricCanvas.getActiveObject();
 
                 if (!activeObject || (activeObject.type !== 'i-text' && activeObject.type !== 'text')) {
-                    // Create new styled text if none selected
                     activeObject = new fabric.IText('NUEVO ESTILO', {
                         left: fabricCanvas.width / 2,
                         top: fabricCanvas.height / 2,
@@ -1120,47 +1106,30 @@ input[type="color"] {
                     fabricCanvas.setActiveObject(activeObject);
                 }
 
-                // Clear existing path if switching styles and it's not circular
-                if (styleName !== 'circular') {
-                    // activeObject.set('path', null); // Keep path if already set? No, reset for better control
-                }
-
                 activeObject.set(style);
-
-                // Update UI controls
                 if (style.fill && style.fill !== 'transparent') {
                     textColorInput.value = style.fill;
                 }
-                if (style.fontFamily) {
-                    fontFamilySelect.value = style.fontFamily;
-                }
-
                 fabricCanvas.renderAll();
                 updateTexture();
             });
         });
 
-        // Add to selection events to sync font panel
-        fabricCanvas.on('selection:created', syncFontPanel);
-        fabricCanvas.on('selection:updated', syncFontPanel);
-
-        function syncFontPanel(e) {
-            const target = e.selected ? e.selected[0] : fabricCanvas.getActiveObject();
+        function syncFontPanel() {
+            const target = fabricCanvas.getActiveObject();
             if (target && (target.type === 'i-text' || target.type === 'text')) {
                 if (target.fill && target.fill !== 'transparent' && typeof target.fill === 'string') {
                     textColorInput.value = target.fill;
                 }
                 textScaleInput.value = target.scaleX;
-                fontFamilySelect.value = target.fontFamily;
-
-                if (target.path) {
-                    // Try to estimate radius from path
-                    // Rough estimation
-                } else {
+                if (!target.path) {
                     textCurvedInput.value = 0;
                 }
             }
         }
+
+        fabricCanvas.on('selection:created', syncFontPanel);
+        fabricCanvas.on('selection:updated', syncFontPanel);
 
         // Templates Panel Logic
         const templatesPanel = document.getElementById('templates-panel');
