@@ -867,7 +867,7 @@
         });    
     
         addTextButton.addEventListener('click', () => {    
-            const text = new fabric.IText('Edita este texto', {
+            const text = new fabric.IText('TEXT', {
                 left: 100, top: 100,    
                 fontFamily: fontFamilySelect.value,    
                 fontSize: parseInt(fontSizeInput.value),    
@@ -1236,7 +1236,7 @@
                     let active = fabricCanvas.getActiveObject();
 
                     if (!active || (active.type !== 'i-text' && active.type !== 'text')) {
-                        active = new fabric.IText('NUEVO ESTILO', {
+                        active = new fabric.IText('TEXT', {
                             left: fabricCanvas.width / 2,
                             top: fabricCanvas.height / 2,
                             originX: 'center',
