@@ -485,16 +485,10 @@
         </div>
         <div class="tool-content">
             <div class="tool-section">
-                <h4><i class="fas fa-edit"></i> Contenido</h4>
-                <div class="tool-option">
-                    <input type="text" id="text-content" placeholder="Escribe aquí..." style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #ddd;">
-                </div>
-            </div>
-            <div class="tool-section">
                 <h4><i class="fas fa-sliders"></i> Ajustes</h4>
                 <div class="tool-option">
                     <label for="text-color">Color</label>
-                    <input type="color" id="text-color" value="#000000">
+                    <input type="color" id="text-color" value="#ff8c00">
                 </div>
                 <div class="tool-option">
                     <label for="text-scale">Escala</label>
@@ -502,19 +496,17 @@
                 </div>
             </div>
             <div class="tool-section">
-                <h4><i class="fas fa-magic"></i> Efectos</h4>
+                <h4><i class="fas fa-magic"></i> Efectos Profesionales</h4>
                 <div class="font-style-grid">
                     <button class="font-style-btn" data-style="none"><span>Normal</span></button>
-                    <button class="font-style-btn" data-style="shadow" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);"><span>Sombra</span></button>
-                    <button class="font-style-btn" data-style="outline_shadow" style="color: black; -webkit-text-stroke: 0.5px white; text-shadow: 2px 2px 2px rgba(0,0,0,0.5);"><span>Contorno</span></button>
-                    <button class="font-style-btn" data-style="glow" style="text-shadow: 0 0 10px yellow;"><span>Glow</span></button>
-                    <button class="font-style-btn" data-style="multiple" style="text-shadow: 2px 2px 0 rgba(0,0,0,0.3), 4px 4px 0 rgba(0,0,0,0.2);"><span>Múltiple</span></button>
-                    <button class="font-style-btn" data-style="3d" style="text-shadow: 1px 1px 0 #ccc, 2px 2px 0 #ccc, 3px 3px 0 #ccc;"><span>3D</span></button>
-                    <button class="font-style-btn" data-style="inner" style="box-shadow: inset 2px 2px 4px rgba(0,0,0,0.5); border: none;"><span>Interna</span></button>
-                    <button class="font-style-btn" data-style="diffuse" style="text-shadow: 0 0 15px rgba(0,0,0,0.3);"><span>Difusa</span></button>
-                    <button class="font-style-btn" data-style="hard" style="text-shadow: 5px 5px 0 rgba(0,0,0,1);"><span>Dura</span></button>
-                    <button class="font-style-btn" data-style="offset" style="text-shadow: 8px 8px 2px rgba(0,0,0,0.3);"><span>Desplazado</span></button>
-                    <button class="font-style-btn" data-style="layered" style="text-shadow: 1px 1px 0 #fff, 2px 2px 0 #fff, 3px 3px 0 #000, 4px 4px 0 #000;"><span>En Capas</span></button>
+                    <button class="font-style-btn" data-style="neon" style="color: #fff; background: #000; text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #ff00de, 0 0 30px #ff00de;"><span>Neon</span></button>
+                    <button class="font-style-btn" data-style="retro" style="color: #ff8c00; background: #eee; text-shadow: 2px 2px 0 #333, 4px 4px 0 #666;"><span>Retro 3D</span></button>
+                    <button class="font-style-btn" data-style="modern_glow" style="color: #fff; background: #222; text-shadow: 0 0 15px rgba(255,140,0,0.8);"><span>Glow Pro</span></button>
+                    <button class="font-style-btn" data-style="stacked" style="color: #fff; -webkit-text-stroke: 1px #ff8c00; text-shadow: 3px 3px 0 #333;"><span>Stacked</span></button>
+                    <button class="font-style-btn" data-style="elegant" style="color: #333; text-shadow: 0 10px 10px rgba(0,0,0,0.15);"><span>Elegant</span></button>
+                    <button class="font-style-btn" data-style="glitch" style="color: #333; text-shadow: 2px 0 #ff00c1, -2px 0 #00fff9;"><span>Glitch</span></button>
+                    <button class="font-style-btn" data-style="hollow" style="color: transparent; -webkit-text-stroke: 1px #ff8c00;"><span>Hollow</span></button>
+                    <button class="font-style-btn" data-style="shadow_soft" style="color: #ff8c00; text-shadow: 5px 5px 15px rgba(0,0,0,0.3);"><span>Soft</span></button>
                 </div>
             </div>
         </div>
@@ -1042,13 +1034,16 @@
         });     
      
         addTextButton.addEventListener('click', () => {     
-            const text = new fabric.IText('Text', {     
+            const text = new fabric.IText('Edita este texto', {
                 left: 100, top: 100,     
                 fontFamily: fontFamilySelect.value,     
                 fontSize: parseInt(fontSizeInput.value),     
-                fill: fillColorInput.value     
+                fill: '#ff8c00', // Default color changed to orange
+                stroke: 'transparent',
+                strokeWidth: 0
             });     
             fabricCanvas.add(text);     
+            fabricCanvas.setActiveObject(text);
             updateTexture();     
         });     
      
@@ -1070,11 +1065,10 @@
         fabricCanvas.on('object:modified', updateTexture);     
         fabricCanvas.on('selection:cleared', () => {     
             fontFamilySelect.value = 'Helvetica';     
-            textContentInput.value = "";
-            textColorInput.value = "#000000";
+            textColorInput.value = "#ff8c00";
             textScaleInput.value = 1;
             fontSizeInput.value = 40;     
-            fillColorInput.value = '#000000';     
+            fillColorInput.value = '#ff8c00';
         });     
      
         window.addEventListener('resize', () => {     
@@ -1229,23 +1223,62 @@
         makeDraggable(document.getElementById('bag-panel'), document.getElementById('bag-panel-header'));
         makeDraggable(document.getElementById('templates-panel'), document.getElementById('templates-panel-header'));
 
-        // Font Styles Panel Logic
+        // Improved Font Styles Panel Logic
         const fontStyles = {
-            none: { stroke: 'transparent', strokeWidth: 0, shadow: null },
-            shadow: { stroke: 'transparent', strokeWidth: 0, shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.5)', blur: 10, offsetX: 5, offsetY: 5 }) },
-            outline_shadow: { stroke: '#fff', strokeWidth: 1, shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.5)', blur: 5, offsetX: 3, offsetY: 3 }) },
-            glow: { stroke: 'transparent', strokeWidth: 0, shadow: new fabric.Shadow({ color: 'rgba(255,255,0,0.8)', blur: 20, offsetX: 0, offsetY: 0 }) },
-            multiple: { stroke: 'transparent', strokeWidth: 0, shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.3)', blur: 15, offsetX: 8, offsetY: 8 }) },
-            '3d': { stroke: 'transparent', strokeWidth: 0, shadow: new fabric.Shadow({ color: 'rgba(0,0,0,1)', blur: 0, offsetX: 5, offsetY: 5 }) },
-            inner: { stroke: 'transparent', strokeWidth: 0, shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.6)', blur: 5, offsetX: -3, offsetY: -3 }) },
-            diffuse: { stroke: 'transparent', strokeWidth: 0, shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.2)', blur: 25, offsetX: 0, offsetY: 10 }) },
-            hard: { stroke: 'transparent', strokeWidth: 0, shadow: new fabric.Shadow({ color: 'rgba(0,0,0,1)', blur: 0, offsetX: 10, offsetY: 10 }) },
-            offset: { stroke: 'transparent', strokeWidth: 0, shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.5)', blur: 2, offsetX: 15, offsetY: 15 }) },
-            layered: { stroke: '#fff', strokeWidth: 2, shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.8)', blur: 5, offsetX: 5, offsetY: 5 }) }
+            none: { stroke: 'transparent', strokeWidth: 0, shadow: null, fill: '#ff8c00' },
+            neon: {
+                fill: '#fff',
+                stroke: '#ff00de',
+                strokeWidth: 1,
+                shadow: new fabric.Shadow({ color: '#ff00de', blur: 20, offsetX: 0, offsetY: 0 })
+            },
+            retro: {
+                fill: '#ff8c00',
+                stroke: '#333',
+                strokeWidth: 1,
+                shadow: new fabric.Shadow({ color: '#333', blur: 0, offsetX: 4, offsetY: 4 })
+            },
+            modern_glow: {
+                fill: '#fff',
+                stroke: 'transparent',
+                strokeWidth: 0,
+                shadow: new fabric.Shadow({ color: 'rgba(255,140,0,0.9)', blur: 25, offsetX: 0, offsetY: 0 })
+            },
+            stacked: {
+                fill: '#fff',
+                stroke: '#ff8c00',
+                strokeWidth: 3,
+                paintFirst: 'stroke',
+                shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.5)', blur: 5, offsetX: 3, offsetY: 3 })
+            },
+            elegant: {
+                fill: '#333',
+                stroke: 'transparent',
+                strokeWidth: 0,
+                shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.15)', blur: 15, offsetX: 0, offsetY: 10 })
+            },
+            glitch: {
+                fill: '#333',
+                stroke: 'transparent',
+                strokeWidth: 0,
+                shadow: new fabric.Shadow({ color: '#ff00c1', blur: 1, offsetX: 3, offsetY: 0 })
+                // Fabric.js only supports one shadow, so we use one strong side
+            },
+            hollow: {
+                fill: 'transparent',
+                stroke: '#ff8c00',
+                strokeWidth: 1.5,
+                shadow: null
+            },
+            shadow_soft: {
+                fill: '#ff8c00',
+                stroke: 'transparent',
+                strokeWidth: 0,
+                shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.3)', blur: 20, offsetX: 8, offsetY: 8 })
+            }
         };
 
         const fontPanel = document.getElementById('font-panel');
-        const textContentInput = document.getElementById('text-content');
         const textColorInput = document.getElementById('text-color');
         const textScaleInput = document.getElementById('text-scale');
         const toggleFontPanelBtn = document.getElementById('toggle-font-panel');
@@ -1258,15 +1291,6 @@
         });
 
         makeDraggable(fontPanel, document.getElementById('font-panel-header'));
-
-        textContentInput.addEventListener('input', (e) => {
-            const activeObject = fabricCanvas.getActiveObject();
-            if (activeObject && activeObject.type === 'i-text') {
-                activeObject.set('text', e.target.value);
-                fabricCanvas.renderAll();
-                updateTexture();
-            }
-        });
 
         textColorInput.addEventListener('input', (e) => {
             const activeObject = fabricCanvas.getActiveObject();
@@ -1293,12 +1317,30 @@
             btn.addEventListener('click', () => {
                 const styleName = btn.getAttribute('data-style');
                 const style = fontStyles[styleName];
-                const activeObject = fabricCanvas.getActiveObject();
-                if (activeObject && activeObject.type === 'i-text') {
-                    activeObject.set(style);
-                    fabricCanvas.renderAll();
-                    updateTexture();
+                let activeObject = fabricCanvas.getActiveObject();
+
+                if (!activeObject || activeObject.type !== 'i-text') {
+                    // Create new styled text if none selected
+                    activeObject = new fabric.IText('Nuevo Estilo', {
+                        left: fabricCanvas.width / 2,
+                        top: fabricCanvas.height / 2,
+                        originX: 'center',
+                        originY: 'center',
+                        fontFamily: fontFamilySelect.value,
+                        fontSize: 40
+                    });
+                    fabricCanvas.add(activeObject);
+                    fabricCanvas.setActiveObject(activeObject);
                 }
+
+                activeObject.set(style);
+                // Update color picker to match style's fill
+                if (style.fill && style.fill !== 'transparent') {
+                    textColorInput.value = style.fill;
+                }
+
+                fabricCanvas.renderAll();
+                updateTexture();
             });
         });
 
@@ -1309,8 +1351,9 @@
         function syncFontPanel(e) {
             const target = e.selected ? e.selected[0] : fabricCanvas.getActiveObject();
             if (target && target.type === 'i-text') {
-                textContentInput.value = target.text;
-                textColorInput.value = target.fill;
+                if (target.fill && target.fill !== 'transparent') {
+                    textColorInput.value = target.fill;
+                }
                 textScaleInput.value = target.scaleX;
             }
         }
