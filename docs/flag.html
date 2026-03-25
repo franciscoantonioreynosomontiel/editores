@@ -322,6 +322,8 @@
         #font-panel {
             top: 450px;
             left: 20px;
+        }
+        #font-panel .tool-content {
             max-height: 400px;
             overflow-y: auto;
         }
@@ -522,7 +524,7 @@
                 </div>
                 <div class="tool-option">
                     <label>Curvatura</label>
-                    <input type="range" id="text-curved" min="0" max="200" step="10" value="0">
+                    <input type="range" id="text-curved" min="0" max="100" step="5" value="0">
                 </div>
             </div>
             <div class="tool-section">
@@ -1040,8 +1042,8 @@
             }
         }
 
-        makeDraggable(document.getElementById('product-panel'), document.getElementById('product-panel-header'));
         makeDraggable(document.getElementById('tool-panel'), document.querySelector('#tool-panel .tool-header'));
+        makeDraggable(document.getElementById('product-panel'), document.getElementById('product-panel-header'));
         makeDraggable(document.getElementById('shapes-panel'), document.getElementById('shapes-panel-header'));
         makeDraggable(document.getElementById('templates-panel'), document.getElementById('templates-panel-header'));
 
@@ -1159,14 +1161,21 @@
                 if (active && (active.type === 'i-text' || active.type === 'text')) {
                     const val = parseInt(e.target.value);
                     if (val > 0) {
-                        const path = new fabric.Path(`M 0 0 a ${val} ${val} 0 1 1 ${val*2} 0`, {
+                        const radius = 400 - (val * 2.5);
+                        const path = new fabric.Path(`M 0 0 a ${radius} ${radius} 0 1 1 ${radius*2} 0`, {
                             fill: 'transparent',
                             stroke: 'transparent',
                             visible: false
                         });
-                        active.set('path', path);
+                        active.set({
+                            path: path,
+                            charSpacing: val * 3
+                        });
                     } else {
-                        active.set('path', null);
+                        active.set({
+                            path: null,
+                            charSpacing: 0
+                        });
                     }
                     fabricCanvas.renderAll();
                     updateTexture();

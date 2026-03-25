@@ -329,6 +329,8 @@ input[type="color"] {
         #font-panel {
             top: 450px;
             left: 20px;
+        }
+        #font-panel .tool-content {
             max-height: 400px;
             overflow-y: auto;
         }
@@ -452,7 +454,7 @@ input[type="color"] {
                 </div>
                 <div class="tool-option">
                     <label>Curvatura</label>
-                    <input type="range" id="text-curved" min="0" max="200" step="10" value="0">
+                    <input type="range" id="text-curved" min="0" max="100" step="1" value="0">
                 </div>
             </div>
             <div class="tool-section">
@@ -872,37 +874,9 @@ input[type="color"] {
             document.body.removeChild(link);
         });
 
-        // Original Tool Panel Logic
+        // Tool Panel Logic
         const toolPanel = document.getElementById('tool-panel');
-        const toolHeader = toolPanel.querySelector('.tool-header');
         const toggleButton = document.getElementById('toggle-panel');
-        let isDragging = false;
-        let offsetX, offsetY;
-
-        toolHeader.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            offsetX = e.clientX - toolPanel.offsetLeft;
-            offsetY = e.clientY - toolPanel.offsetTop;
-            toolHeader.style.cursor = 'grabbing';
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-                let newLeft = e.clientX - offsetX;
-                let newTop = e.clientY - offsetY;
-                const maxLeft = window.innerWidth - toolPanel.offsetWidth;
-                const maxTop = window.innerHeight - toolPanel.offsetHeight;
-                newLeft = Math.max(0, Math.min(newLeft, maxLeft));
-                newTop = Math.max(0, Math.min(newTop, maxTop));
-                toolPanel.style.left = `${newLeft}px`;
-                toolPanel.style.top = `${newTop}px`;
-            }
-        });
-
-        document.addEventListener('mouseup', () => {
-            isDragging = false;
-            toolHeader.style.cursor = 'grab';
-        });
 
         toggleButton.addEventListener('click', () => {
             toolPanel.classList.toggle('collapsed');
@@ -958,6 +932,7 @@ input[type="color"] {
             }
         }
 
+        makeDraggable(document.getElementById('tool-panel'), document.querySelector('#tool-panel .tool-header'));
         makeDraggable(document.getElementById('product-panel'), document.getElementById('product-panel-header'));
 
         // Improved Font Styles Panel Logic
@@ -1071,16 +1046,24 @@ input[type="color"] {
         textCurvedInput.addEventListener('input', (e) => {
             const activeObject = fabricCanvas.getActiveObject();
             if (activeObject && (activeObject.type === 'i-text' || activeObject.type === 'text')) {
-                const value = parseInt(e.target.value);
-                if (value > 0) {
-                    const path = new fabric.Path(`M 0 0 a ${value} ${value} 0 1 1 ${value*2} 0`, {
+                const val = parseInt(e.target.value);
+                if (val > 0) {
+                    // Unify curvature range and prevent overlap
+                    const radius = 400 - (val * 2.5);
+                    const path = new fabric.Path(`M 0 0 a ${radius} ${radius} 0 1 1 ${radius*2} 0`, {
                         fill: 'transparent',
                         stroke: 'transparent',
                         visible: false
                     });
-                    activeObject.set('path', path);
+                    activeObject.set({
+                        path: path,
+                        charSpacing: val * 3 // Dynamically adjust spacing to prevent overlapping
+                    });
                 } else {
-                    activeObject.set('path', null);
+                    activeObject.set({
+                        path: null,
+                        charSpacing: 0
+                    });
                 }
                 fabricCanvas.renderAll();
                 updateTexture();
