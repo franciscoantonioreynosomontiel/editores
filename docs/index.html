@@ -489,6 +489,7 @@ input[type="color"] {
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.5.0/fabric.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
         const modelCanvas = document.getElementById('model-canvas');
         const textureCanvas = document.getElementById('texture-canvas');
@@ -764,6 +765,7 @@ input[type="color"] {
                 fabricCanvas.renderAll();
             }
 
+            // Using multiplier: 6 to get ~3480px from 580px canvas (approx 300 DPI for ~11.6 inches)
             const dataURL = fabricCanvas.toDataURL({
                 format: 'png',
                 quality: 1.0,
@@ -778,12 +780,21 @@ input[type="color"] {
                 fabricCanvas.renderAll();
             }
 
-            const link = document.createElement('a');
-            link.href = dataURL;
-            link.download = 'tshirt-design-hq.png';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // PDF Export for better print readiness
+            const { jsPDF } = window.jspdf;
+
+            // Create PDF with orientation based on aspect ratio
+            const width = fabricCanvas.width * 6;
+            const height = fabricCanvas.height * 6;
+            const orientation = width > height ? 'l' : 'p';
+            const pdf = new jsPDF({
+                orientation: orientation,
+                unit: 'px',
+                format: [width, height]
+            });
+
+            pdf.addImage(dataURL, 'PNG', 0, 0, width, height);
+            pdf.save('tshirt-design-ready-to-print.pdf');
         });
 
         // Original Tool Panel Logic
