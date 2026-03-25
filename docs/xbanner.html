@@ -310,14 +310,51 @@
             z-index: 2001; 
         } 
  
-        /* Shapes Panel Styles */ 
-        #shapes-panel { 
-            left: 320px; 
-        } 
+        /* Shapes Panel Styles */
+        #shapes-panel {
+            left: 320px;
+        }
 
         /* Templates Panel Styles */
         #templates-panel {
             left: 620px;
+        }
+
+        /* Font Styles Panel */
+        #font-panel {
+            top: 450px;
+            left: 20px;
+        }
+        #font-panel .tool-content {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .font-style-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            padding: 5px;
+        }
+        .font-style-btn {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 14px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 50px;
+        }
+        .font-style-btn:hover {
+            background-color: #f0f0f0;
+            border-color: #ccc;
+        }
+        .font-style-btn span {
+            display: block;
         }
         .templates-grid {
             display: grid;
@@ -470,6 +507,44 @@
         </div> 
     </div> 
 
+    <div id="font-panel" class="tool-panel">
+        <div class="tool-header" id="font-panel-header">
+            <h3><i class="fas fa-font"></i> Estilos PRO</h3>
+            <button id="toggle-font-panel"><i class="fas fa-minus"></i></button>
+        </div>
+        <div class="tool-content">
+            <div class="tool-section">
+                <h4><i class="fas fa-sliders"></i> Ajustes Básicos</h4>
+                <div class="tool-option">
+                    <label for="text-color">Color</label>
+                    <input type="color" id="text-color" value="#ff8c00">
+                </div>
+                <div class="tool-option">
+                    <label for="text-scale">Escala</label>
+                    <input type="range" id="text-scale" min="0.1" max="5" step="0.1" value="1">
+                </div>
+                <div class="tool-option">
+                    <label>Curvatura</label>
+                    <input type="range" id="text-curved" min="0" max="100" step="5" value="0">
+                </div>
+            </div>
+            <div class="tool-section">
+                <h4><i class="fas fa-wand-magic-sparkles"></i> Efectos WOW (Impresión)</h4>
+                <div class="font-style-grid">
+                    <button class="font-style-btn" data-style="graffiti" style="font-family: 'Bangers'; color: #ff0000; -webkit-text-stroke: 1px #000; text-shadow: 3px 3px 0 #ffff00;"><span>GRAFFITI</span></button>
+                    <button class="font-style-btn" data-style="mega_3d" style="font-family: 'Alfa Slab One'; color: #ff8c00; text-shadow: 1px 1px #000, 2px 2px #000, 3px 3px #000, 4px 4px #000, 5px 5px #000;"><span>MEGA 3D</span></button>
+                    <button class="font-style-btn" data-style="luxury_gold" style="font-family: 'Playfair Display'; color: #ffd700; text-shadow: 0 0 5px rgba(0,0,0,0.5); font-weight: bold;"><span>LUXURY</span></button>
+                    <button class="font-style-btn" data-style="punk" style="font-family: 'Creepster'; color: #fff; -webkit-text-stroke: 1px #ff00de; text-shadow: 2px 2px 0 #000;"><span>PUNK</span></button>
+                    <button class="font-style-btn" data-style="cloud" style="font-family: 'Luckiest Guy'; color: #00d2ff; -webkit-text-stroke: 1.5px #fff; text-shadow: 0 0 10px rgba(255,255,255,0.8);"><span>CLOUD</span></button>
+                    <button class="font-style-btn" data-style="retro_pop" style="font-family: 'Monoton'; color: #fe019a;"><span>RETRO</span></button>
+                    <button class="font-style-btn" data-style="neon_glow" style="color: #fff; background: #1a1a1a; text-shadow: 0 0 7px #fff, 0 0 10px #fff, 0 0 21px #fff, 0 0 42px #0fa, 0 0 82px #0fa;"><span>NEON</span></button>
+                    <button class="font-style-btn" data-style="hollow_bold" style="font-family: 'Alfa Slab One'; color: transparent; -webkit-text-stroke: 1.5px #ff8c00;"><span>HOLLOW</span></button>
+                    <button class="font-style-btn" data-style="clean_bold" style="font-family: 'Roboto'; font-weight: 900; color: #333;"><span>CLEAN</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="templates-panel" class="tool-panel">
         <div class="tool-header" id="templates-panel-header">
             <h3><i class="fas fa-layer-group"></i> Templates</h3>
@@ -539,8 +614,21 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>    
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>    
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.5.0/fabric.min.js"></script>    
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"></script>
+
     <script>    
+        // Load Custom Fonts
+        WebFont.load({
+            google: {
+                families: ['Alfa Slab One', 'Bangers', 'Permanent Marker', 'Monoton', 'Creepster', 'Luckiest Guy', 'Playfair Display:700']
+            },
+            active: function() {
+                console.log("Fonts loaded");
+                if (typeof fabricCanvas !== 'undefined') fabricCanvas.renderAll();
+            }
+        });
+
         const modelCanvas = document.getElementById('model-canvas');    
         const textureCanvas = document.getElementById('texture-canvas');    
         const modelError = document.getElementById('model-error');    
@@ -774,13 +862,16 @@
         });    
     
         addTextButton.addEventListener('click', () => {    
-            const text = new fabric.IText('Text', {    
+            const text = new fabric.IText('Edita este texto', {
                 left: 100, top: 100,    
                 fontFamily: fontFamilySelect.value,    
                 fontSize: parseInt(fontSizeInput.value),    
-                fill: fillColorInput.value    
+                fill: '#ff8c00', // Default color changed to orange
+                stroke: 'transparent',
+                strokeWidth: 0
             });    
             fabricCanvas.add(text);    
+            fabricCanvas.setActiveObject(text);
             updateTexture();    
         });    
     
@@ -803,7 +894,7 @@
         fabricCanvas.on('selection:cleared', () => {    
             fontFamilySelect.value = 'Helvetica';    
             fontSizeInput.value = 40;    
-            fillColorInput.value = '#000000';    
+            fillColorInput.value = '#000000';
         });    
     
         window.addEventListener('resize', () => {    
@@ -846,7 +937,7 @@
 
             const link = document.createElement('a');
             link.href = dataURL;
-            link.download = 'xbanner-design-alta-calidad.png';
+            link.download = 'xbanner-design-hq.png';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -952,10 +1043,188 @@
             } 
         } 
  
-        makeDraggable(document.getElementById('product-panel'), document.getElementById('product-panel-header')); 
         makeDraggable(document.getElementById('tool-panel'), document.querySelector('#tool-panel .tool-header')); 
+        makeDraggable(document.getElementById('product-panel'), document.getElementById('product-panel-header'));
         makeDraggable(document.getElementById('shapes-panel'), document.getElementById('shapes-panel-header')); 
         makeDraggable(document.getElementById('templates-panel'), document.getElementById('templates-panel-header'));
+
+        // Improved Font Styles Panel Logic
+        (function() {
+            const styles = {
+                graffiti: {
+                    fontFamily: 'Bangers',
+                    fill: '#ff0000',
+                    stroke: '#000',
+                    strokeWidth: 2,
+                    paintFirst: 'stroke',
+                    shadow: new fabric.Shadow({ color: '#ffff00', blur: 0, offsetX: 5, offsetY: 5 })
+                },
+                mega_3d: {
+                    fontFamily: 'Alfa Slab One',
+                    fill: '#ff8c00',
+                    stroke: '#333',
+                    strokeWidth: 1,
+                    shadow: new fabric.Shadow({ color: '#000', blur: 0, offsetX: 8, offsetY: 8 })
+                },
+                luxury_gold: {
+                    fontFamily: 'Playfair Display',
+                    fill: '#ffd700',
+                    stroke: '#b8860b',
+                    strokeWidth: 0.5,
+                    shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.4)', blur: 10, offsetX: 3, offsetY: 3 })
+                },
+                punk: {
+                    fontFamily: 'Creepster',
+                    fill: '#fff',
+                    stroke: '#ff00de',
+                    strokeWidth: 2,
+                    shadow: new fabric.Shadow({ color: '#000', blur: 2, offsetX: 4, offsetY: 4 })
+                },
+                cloud: {
+                    fontFamily: 'Luckiest Guy',
+                    fill: '#00d2ff',
+                    stroke: '#fff',
+                    strokeWidth: 4,
+                    paintFirst: 'stroke',
+                    shadow: new fabric.Shadow({ color: 'rgba(255,255,255,0.9)', blur: 20, offsetX: 0, offsetY: 0 })
+                },
+                retro_pop: {
+                    fontFamily: 'Monoton',
+                    fill: '#fe019a',
+                    stroke: 'transparent',
+                    strokeWidth: 0,
+                    shadow: new fabric.Shadow({ color: '#333', blur: 2, offsetX: 3, offsetY: 3 })
+                },
+                neon_glow: {
+                    fontFamily: 'Helvetica',
+                    fill: '#fff',
+                    stroke: '#0fa',
+                    strokeWidth: 1,
+                    shadow: new fabric.Shadow({ color: '#0fa', blur: 30, offsetX: 0, offsetY: 0 })
+                },
+                hollow_bold: {
+                    fontFamily: 'Alfa Slab One',
+                    fill: 'transparent',
+                    stroke: '#ff8c00',
+                    strokeWidth: 2,
+                    shadow: null
+                },
+                clean_bold: {
+                    fontFamily: 'Roboto',
+                    fontWeight: 900,
+                    fill: '#333',
+                    stroke: 'transparent',
+                    strokeWidth: 0,
+                    shadow: null
+                }
+            };
+
+            const panel = document.getElementById('font-panel');
+            const colorInp = document.getElementById('text-color');
+            const scaleInp = document.getElementById('text-scale');
+            const curvedInp = document.getElementById('text-curved');
+            const toggleBtn = document.getElementById('toggle-font-panel');
+
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    panel.classList.toggle('collapsed');
+                    const icon = toggleBtn.querySelector('i');
+                    icon.classList.toggle('fa-minus');
+                    icon.classList.toggle('fa-plus');
+                });
+            }
+
+            makeDraggable(panel, document.getElementById('font-panel-header'));
+
+            colorInp.addEventListener('input', (e) => {
+                const active = fabricCanvas.getActiveObject();
+                if (active && (active.type === 'i-text' || active.type === 'text')) {
+                    active.set('fill', e.target.value);
+                    fabricCanvas.renderAll();
+                    updateTexture();
+                }
+            });
+
+            scaleInp.addEventListener('input', (e) => {
+                const active = fabricCanvas.getActiveObject();
+                if (active) {
+                    active.set({
+                        scaleX: parseFloat(e.target.value),
+                        scaleY: parseFloat(e.target.value)
+                    });
+                    fabricCanvas.renderAll();
+                    updateTexture();
+                }
+            });
+
+            curvedInp.addEventListener('input', (e) => {
+                const active = fabricCanvas.getActiveObject();
+                if (active && (active.type === 'i-text' || active.type === 'text')) {
+                    const val = parseInt(e.target.value);
+                    if (val > 0) {
+                        const radius = 400 - (val * 2.5);
+                        const path = new fabric.Path(`M 0 0 a ${radius} ${radius} 0 1 1 ${radius*2} 0`, {
+                            fill: 'transparent',
+                            stroke: 'transparent',
+                            visible: false
+                        });
+                        active.set({
+                            path: path,
+                            charSpacing: val * 3
+                        });
+                    } else {
+                        active.set({
+                            path: null,
+                            charSpacing: 0
+                        });
+                    }
+                    fabricCanvas.renderAll();
+                    updateTexture();
+                }
+            });
+
+            document.querySelectorAll('#font-panel .font-style-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const styleName = btn.getAttribute('data-style');
+                    const style = styles[styleName];
+                    let active = fabricCanvas.getActiveObject();
+
+                    if (!active || (active.type !== 'i-text' && active.type !== 'text')) {
+                        active = new fabric.IText('NUEVO ESTILO', {
+                            left: fabricCanvas.width / 2,
+                            top: fabricCanvas.height / 2,
+                            originX: 'center',
+                            originY: 'center',
+                            fontSize: 60,
+                            textAlign: 'center'
+                        });
+                        fabricCanvas.add(active);
+                        fabricCanvas.setActiveObject(active);
+                    }
+
+                    active.set(style);
+                    if (style.fill && style.fill !== 'transparent') {
+                        colorInp.value = style.fill;
+                    }
+                    fabricCanvas.renderAll();
+                    updateTexture();
+                });
+            });
+
+            function sync() {
+                const target = fabricCanvas.getActiveObject();
+                if (target && (target.type === 'i-text' || target.type === 'text')) {
+                    if (target.fill && target.fill !== 'transparent' && typeof target.fill === 'string') {
+                        colorInp.value = target.fill;
+                    }
+                    scaleInp.value = target.scaleX;
+                    if (!target.path) curvedInp.value = 0;
+                }
+            }
+
+            fabricCanvas.on('selection:created', sync);
+            fabricCanvas.on('selection:updated', sync);
+        })();
  
         // Templates Panel Logic
         const templatesPanel = document.getElementById('templates-panel');
