@@ -605,9 +605,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>    
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>    
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>    
-    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"></script>
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.5.0/fabric.min.js"></script>    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>    
         // Load Custom Fonts
         WebFont.load({
@@ -933,12 +932,19 @@
                 fabricCanvas.renderAll();
             }
 
-            const link = document.createElement('a');
-            link.href = dataURL;
-            link.download = 'xbanner-design-hq.png';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // PDF Export for better print readiness
+            const { jsPDF } = window.jspdf;
+            const width = fabricCanvas.width * 6;
+            const height = fabricCanvas.height * 6;
+            const orientation = width > height ? 'l' : 'p';
+            const pdf = new jsPDF({
+                orientation: orientation,
+                unit: 'px',
+                format: [width, height]
+            });
+
+            pdf.addImage(dataURL, 'PNG', 0, 0, width, height);
+            pdf.save('xbanner-design-ready-to-print.pdf');
         });
   
         // Drag and Drop Implementation  
