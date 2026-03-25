@@ -186,9 +186,11 @@
             justify-content: center;     
             align-items: center;     
             margin-bottom: 10px;
+            transition: background-color 0.2s;
+            cursor: pointer;
         }     
-        #generate-hq-template {
-            background-color: #28a745;
+        #generate-template:hover, #generate-hq-template:hover {
+            background-color: #e67e00;
         }
         #generate-template i, #generate-hq-template i {
             margin-right: 8px;     
@@ -413,7 +415,7 @@
                 </div>     
             </div>
             <div class="tool-footer">     
-                <button id="generate-hq-template"><i class="fas fa-file-download"></i> Descargar Alta Calidad</button>
+                <button id="generate-hq-template">Descargar Alta Calidad</button>
                 <button id="generate-template"><i class="fas fa-download"></i> Download Design</button>     
             </div>     
         </div>     
@@ -574,7 +576,6 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>     
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.5.0/fabric.min.js"></script>     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>     
         const modelCanvas = document.getElementById('model-canvas');     
         const textureCanvas = document.getElementById('texture-canvas');     
@@ -1039,19 +1040,12 @@
                 fabricCanvas.renderAll();
             }
 
-            // PDF Export for better print readiness
-            const { jsPDF } = window.jspdf;
-            const width = fabricCanvas.width * 6;
-            const height = fabricCanvas.height * 6;
-            const orientation = width > height ? 'l' : 'p';
-            const pdf = new jsPDF({
-                orientation: orientation,
-                unit: 'px',
-                format: [width, height]
-            });
-
-            pdf.addImage(dataURL, 'PNG', 0, 0, width, height);
-            pdf.save('Stickers-design-ready-to-print.pdf');
+            const link = document.createElement('a');
+            link.href = dataURL;
+            link.download = 'Stickers-design-alta-calidad.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         });
    
         // Drag and Drop Implementation   
