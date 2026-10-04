@@ -352,9 +352,121 @@
             left: 320px;
         }
 
+        /* Layers Panel Styles */
+        #layers-panel {
+            left: 620px;
+        }
+        #layers-panel .tool-content {
+            max-height: 380px;
+            overflow-y: auto;
+        }
+        .layers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .layer-item {
+            background: #fafafa;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .layer-item.selected {
+            border-color: #ff8c00;
+            background: #fff8f0;
+            box-shadow: 0 0 5px rgba(255,140,0,0.3);
+        }
+        .layer-main {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .layer-type-icon {
+            color: #ff8c00;
+            font-size: 14px;
+            width: 16px;
+            text-align: center;
+        }
+        .layer-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: #333;
+            flex-grow: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .layer-actions {
+            display: flex;
+            gap: 4px;
+        }
+        .layer-btn {
+            background: none;
+            border: none;
+            color: #777;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 3px 5px;
+            border-radius: 4px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .layer-btn:hover {
+            background: #eee;
+            color: #333;
+        }
+        .layer-btn.layer-del:hover {
+            background: #ffe6e6;
+            color: #d9534f;
+        }
+        .layer-role-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: #666;
+            border-top: 1px dashed #eee;
+            padding-top: 5px;
+            margin-top: 2px;
+        }
+        .layer-role-select, .layer-role-custom {
+            font-size: 11px;
+            padding: 2px 4px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            flex-grow: 1;
+        }
+        .admin-save-section {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        #save-template-btn {
+            width: 100%;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            font-size: 13px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #save-template-btn:hover {
+            background-color: #218838;
+        }
+
         /* Templates Panel Styles */
         #templates-panel {
-            left: 620px;
+            left: 920px;
         }
         .templates-grid {
             display: grid;
@@ -545,12 +657,33 @@
         </div>
     </div>
 
+    <div id="layers-panel" class="tool-panel">
+        <div class="tool-header" id="layers-panel-header">
+            <h3><i class="fas fa-layer-group"></i> Capas / Layers</h3>
+            <button id="toggle-layers-panel"><i class="fas fa-minus"></i></button>
+        </div>
+        <div class="tool-content">
+            <div class="tool-section">
+                <h4><i class="fas fa-list"></i> Orden de Capas</h4>
+                <div id="layers-list" class="layers-list"></div>
+            </div>
+        </div>
+    </div>
+
     <div id="templates-panel" class="tool-panel">
         <div class="tool-header" id="templates-panel-header">
             <h3><i class="fas fa-layer-group"></i> Templates</h3>
             <button id="toggle-templates-panel"><i class="fas fa-minus"></i></button>
         </div>
         <div class="tool-content">
+            <div class="tool-section admin-save-section">
+                <h4><i class="fas fa-user-shield"></i> Admin Templates</h4>
+                <button id="save-template-btn"><i class="fas fa-save"></i> Guardar Diseño (JSON)</button>
+            </div>
+            <div class="tool-section">
+                <h4><i class="fas fa-folder-open"></i> Mis Plantillas Editables</h4>
+                <div class="templates-grid" id="saved-templates-grid"></div>
+            </div>
             <div class="tool-section">
                 <h4><i class="fas fa-th-large"></i> Select Template</h4>
                 <div class="templates-grid" id="templates-grid">
@@ -616,6 +749,7 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>    
     <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"></script>
+    <script src="layers-templates.js"></script>
 
     <script>    
         // Load Custom Fonts
@@ -1093,6 +1227,26 @@
         }
 
         document.getElementById('template-blank').addEventListener('click', () => setTemplate(null));
+
+        // Initialize Layers & Template Manager
+        const layersTemplateManager = new LayersTemplateManager({
+            canvas: fabricCanvas,
+            productKey: 'banner',
+            onUpdateTexture: updateTexture
+        });
+
+        const layersPanel = document.getElementById('layers-panel');
+        if (document.getElementById('toggle-layers-panel')) {
+            document.getElementById('toggle-layers-panel').addEventListener('click', () => {
+                layersPanel.classList.toggle('collapsed');
+                const icon = document.querySelector('#toggle-layers-panel i');
+                icon.classList.toggle('fa-minus');
+                icon.classList.toggle('fa-plus');
+            });
+        }
+        if (layersPanel && document.getElementById('layers-panel-header')) {
+            makeDraggable(layersPanel, document.getElementById('layers-panel-header'));
+        }
 
         // Improved Font Styles Panel Logic
         (function() {
